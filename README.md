@@ -7,6 +7,18 @@ The Climate Risk Explorer is an interactive web application designed to visualiz
 
 ![Demo Page](public/demo_page.png)
 
+
+The radar plot in the Climate Risk Explorer displays various climate risk factors for each county across the United States. The categories shown in the radar plot include:
+
+- **Heat**: The projected increase in average temperatures and the frequency of extreme heat events.
+- **Wet Bulb**: The combined effect of temperature and humidity, indicating the potential for heat stress.
+- **Crop Yields**: The impact of climate change on agricultural productivity and crop yields.
+- **Sea Level Rise**: The projected rise in sea levels and its impact on coastal areas.
+- **Wildfire**: The increased risk of wildfires due to changing climate conditions.
+- **Economic Damage**: The potential economic impact of climate change, including damage to infrastructure and property.
+
+Each category is represented as a point on the radar plot, allowing users to quickly assess the relative risk levels for different factors in each county.
+
 ## Technologies
 
 The Climate Risk Explorer is built using:
@@ -48,6 +60,6 @@ This project is licensed under the MIT License. See the [LICENSE](http://_vscode
 
 ## Acknowledgements
 
-This project is based on research published in the [PNAS paper](https://www.pnas.org/doi/10.1073/pnas.1910114117).
+This project is based on research published [here in PNAS](https://www.pnas.org/doi/10.1073/pnas.1910114117).
 
 For more information, please refer to the project documentation.
