@@ -70,8 +70,8 @@ export const MAP_CONFIG = {
   statesGeoUrl: 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json',
   defaultCenter: [-96, 38],
   defaultZoom: 1,
-  maxZoom: 8,
-  selectionZoom: 4,
+  maxZoom: 20,
+  selectionZoom: 10,
 };
 
 // Map interaction colors

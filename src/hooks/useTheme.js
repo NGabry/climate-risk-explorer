@@ -32,7 +32,7 @@ export function useTheme() {
       text: 'white',
       textMuted: 'rgba(255,255,255,0.8)',
     },
-    stroke: isDark ? 'white' : '#333',
+    stroke: isDark ? 'white' : '#555',
     pointStroke: isDark ? 'white' : '#f5f5f5',
   }), [isDark]);
 }

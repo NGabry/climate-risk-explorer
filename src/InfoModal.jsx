@@ -29,10 +29,6 @@ const InfoModal = ({ isOpen, onClose }) => {
           </button>
         </div>
         <div className="info-modal-content">
-          <p className="info-modal-intro">
-            Data from the <a href="https://projects.propublica.org/climate-migration/" target="_blank" rel="noopener noreferrer">ProPublica/Rhodium Group</a> climate migration study.
-            Projections represent median probabilities for 2040-2060.
-          </p>
           {RISK_TYPES.map((type) => (
             <div key={type.key} className="info-modal-factor">
               <h4>{type.label}</h4>

@@ -166,7 +166,7 @@ const Histogram = ({
         if (!selectedRange) return 0.8;
         return isBinSelected(d) ? 1 : 0.3;
       })
-      .attr("stroke", (d) => isBinSelected(d) ? "white" : "none")
+      .attr("stroke", (d) => isBinSelected(d) ? theme.stroke : "none")
       .attr("stroke-width", 2)
       .attr("cursor", "pointer")
       .on("click", function (event, d) {
@@ -184,7 +184,7 @@ const Histogram = ({
           .transition()
           .duration(100)
           .attr("opacity", 1)
-          .attr("stroke", "white")
+          .attr("stroke", theme.stroke)
           .attr("stroke-width", 2);
 
         // Show tooltip - append to svg (not g) so it overlays everything including title
@@ -226,7 +226,7 @@ const Histogram = ({
           .transition()
           .duration(100)
           .attr("opacity", selectedRange ? (isSelected ? 1 : 0.3) : 0.8)
-          .attr("stroke", isSelected ? "white" : "none")
+          .attr("stroke", isSelected ? theme.stroke : "none")
           .attr("stroke-width", isSelected ? 2 : 0);
         svg.selectAll(".histogram-tooltip, .histogram-tooltip-bg").remove();
       })

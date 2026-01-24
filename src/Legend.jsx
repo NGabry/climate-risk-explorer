@@ -94,7 +94,7 @@ const Legend = ({
       .attr("width", (d) => Math.max(0, xScale(d.max) - xScale(d.min)))
       .attr("height", barHeight)
       .attr("fill", (d) => d.color)
-      .attr("stroke", (d) => isSegmentSelected(d) ? "white" : "none")
+      .attr("stroke", (d) => isSegmentSelected(d) ? theme.stroke : "none")
       .attr("stroke-width", 2)
       .attr("opacity", (d) => {
         if (!selectedRange) return 1;
@@ -110,14 +110,14 @@ const Legend = ({
         }
       })
       .on("mouseenter", function () {
-        select(this).transition().duration(100).attr("stroke", "white").attr("stroke-width", 2);
+        select(this).transition().duration(100).attr("stroke", theme.stroke).attr("stroke-width", 2);
       })
       .on("mouseleave", function (_, d) {
         const isSelected = isSegmentSelected(d);
         select(this)
           .transition()
           .duration(100)
-          .attr("stroke", isSelected ? "white" : "none")
+          .attr("stroke", isSelected ? theme.stroke : "none")
           .attr("stroke-width", isSelected ? 2 : 0);
       });
 
