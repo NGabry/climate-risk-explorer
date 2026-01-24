@@ -170,6 +170,11 @@ const MapChart = () => {
     setSelectedRange(range);
   }, []);
 
+  const handleRiskTypeChange = useCallback((type) => {
+    setSelectedRiskType(type);
+    setSelectedRange(null);
+  }, []);
+
   const handleSearchSelect = useCallback((county) => {
     setSelectedCounty(county);
     setCityMarker(null); // Clear any city marker
@@ -256,7 +261,7 @@ const MapChart = () => {
                   <button
                     key={type.key}
                     className={`risk-tab ${selectedRiskType.key === type.key ? 'active' : ''}`}
-                    onClick={() => setSelectedRiskType(type)}
+                    onClick={() => handleRiskTypeChange(type)}
                   >
                     {type.label}
                   </button>
