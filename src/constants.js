@@ -76,6 +76,6 @@ export const MAP_CONFIG = {
 
 // Map interaction colors
 export const MAP_COLORS = {
-  selection: '#00bfff',      // Light blue for selected/hovered counties
+  selection: '#00d4ff',      // Cyan for selected/hovered counties (matches --accent-primary)
   defaultStroke: '#000',     // Default county border
 };

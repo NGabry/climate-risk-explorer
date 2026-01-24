@@ -1,38 +1,25 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 /**
- * Hook that provides theme-aware colors for D3 components.
- * Listens to system dark/light mode preference and returns
- * computed color values for text, grids, tooltips, etc.
+ * Hook that provides theme colors for D3 components.
+ * Uses the dusty blue Weather-style theme.
  */
 export function useTheme() {
-  const [isDark, setIsDark] = useState(() =>
-    window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true
-  );
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e) => setIsDark(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
-
   return useMemo(() => ({
-    isDark,
     text: {
-      primary: isDark ? 'white' : '#333',
-      secondary: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
-      muted: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
-      subtle: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)',
+      primary: 'rgba(255,255,255,0.95)',
+      secondary: 'rgba(255,255,255,0.75)',
+      muted: 'rgba(255,255,255,0.55)',
+      subtle: 'rgba(255,255,255,0.4)',
     },
-    grid: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
-    axis: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)',
+    grid: 'rgba(255,255,255,0.15)',
+    axis: 'rgba(255,255,255,0.6)',
     tooltip: {
-      bg: isDark ? 'rgba(0,0,0,0.9)' : 'rgba(40,40,60,0.95)',
-      text: 'white',
-      textMuted: 'rgba(255,255,255,0.8)',
+      bg: 'rgba(40,50,60,0.85)',
+      text: 'rgba(255,255,255,0.95)',
+      textMuted: 'rgba(255,255,255,0.7)',
     },
-    stroke: isDark ? 'white' : '#555',
-    pointStroke: isDark ? 'white' : '#f5f5f5',
-  }), [isDark]);
+    stroke: 'rgba(255,255,255,0.9)',
+    pointStroke: 'rgba(255,255,255,0.9)',
+  }), []);
 }
