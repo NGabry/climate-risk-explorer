@@ -51,6 +51,11 @@ const MapChart = () => {
       total_risk: +d.total_risk,
     })).then((counties) => {
       setData(counties);
+      // Auto-select Oakland County, MI on startup
+      const oakland = counties.find(c => c.name === "Oakland County, MI");
+      if (oakland) {
+        setSelectedCounty(oakland);
+      }
     });
   }, []);
 
