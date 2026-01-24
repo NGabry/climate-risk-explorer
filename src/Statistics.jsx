@@ -72,25 +72,33 @@ const Statistics = ({ data, selectedCounty, riskKey = 'total_risk', riskLabel = 
 
       {selectedCounty && countyPercentile && (
         <div className="selected-stats">
-          <div className="selected-county-name">
-            {selectedCounty.name}
-          </div>
-          <div className="percentile-container">
-            <span className="percentile-label">National Percentile</span>
-            <span className="percentile-value">{countyPercentile}%</span>
-            <div className="percentile-bar">
-              <div
-                className="percentile-fill"
-                style={{ width: `${countyPercentile}%` }}
-              />
-              <div
-                className="percentile-marker"
-                style={{ left: `${countyPercentile}%` }}
-              />
+          <div className="selected-stats-main">
+            <div className="selected-stats-left">
+              <div className="selected-county-name">
+                {selectedCounty.name}
+              </div>
+              <div className="percentile-container">
+                <span className="percentile-label">National Percentile</span>
+                <span className="percentile-value">{countyPercentile}%</span>
+                <div className="percentile-bar">
+                  <div
+                    className="percentile-fill"
+                    style={{ width: `${countyPercentile}%` }}
+                  />
+                  <div
+                    className="percentile-marker"
+                    style={{ left: `${countyPercentile}%` }}
+                  />
+                </div>
+                <div className="percentile-labels">
+                  <span>Lower Risk</span>
+                  <span>Higher Risk</span>
+                </div>
+              </div>
             </div>
-            <div className="percentile-labels">
-              <span>Lower Risk</span>
-              <span>Higher Risk</span>
+            <div className="selected-stats-score">
+              <span className="score-value">{selectedCounty[riskKey]}</span>
+              <span className="score-label">{riskLabel} Score</span>
             </div>
           </div>
         </div>

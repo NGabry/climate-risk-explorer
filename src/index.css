@@ -620,6 +620,43 @@ svg {
   border-top: 1px solid var(--border-default);
 }
 
+.selected-stats-main {
+  position: relative;
+}
+
+.selected-stats-left {
+  width: 100%;
+}
+
+.selected-stats-score {
+  position: absolute;
+  right: 0;
+  top: 33%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background: var(--bg-panel);
+  border-radius: 12px;
+}
+
+.score-value {
+  font-size: 3em;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
 .selected-county-name {
   font-size: 1.4em;
   font-weight: 600;
