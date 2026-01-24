@@ -9,6 +9,7 @@ import {
 import { scaleQuantize } from "d3-scale";
 import { interpolateRdYlGn } from "d3-scale-chromatic";
 import { csv, json } from "d3-fetch";
+import { bin } from "d3-array";
 import { geoCentroid } from "d3-geo";
 import { feature } from "topojson-client";
 import { AkHiStates, AkHiCounties } from "./AkHi";
@@ -85,6 +86,23 @@ const MapChart = () => {
       .range(Array.from({ length: 15 }, (_, i) => interpolateRdYlGn(1 - i / 14))),
     [selectedRiskType]
   );
+
+  // Calculate histogram bins to share between Legend and Histogram
+  // This ensures both components use identical boundaries for selection sync
+  const histogramBins = useMemo(() => {
+    if (!data || data.length === 0) return [];
+
+    const riskValues = data.map((d) => d[selectedRiskType.key]);
+    const [minDomain, maxDomain] = selectedRiskType.domain;
+    const rangeSize = maxDomain - minDomain;
+    const numBins = rangeSize <= 10 ? rangeSize : 15;
+
+    const histogram = bin()
+      .domain([minDomain, maxDomain])
+      .thresholds(numBins);
+
+    return histogram(riskValues);
+  }, [data, selectedRiskType]);
 
   const handleCountyClick = useCallback(
     (geo, event) => {
@@ -182,13 +200,13 @@ const MapChart = () => {
   const getCountyOpacity = (countyData) => {
     if (!selectedRange) return 1;
     if (!countyData) return 0.3;
-    if (
-      countyData[selectedRiskType.key] >= selectedRange[0] &&
-      countyData[selectedRiskType.key] <= selectedRange[1]
-    ) {
-      return 1;
-    }
-    return 0.15;
+    const value = countyData[selectedRiskType.key];
+    // Use half-open interval [min, max) - left-inclusive, right-exclusive
+    // Exception: include the domain maximum in the last bin
+    const isLastBin = selectedRange[1] === selectedRiskType.domain[1];
+    const isInRange = value >= selectedRange[0] &&
+      (isLastBin ? value <= selectedRange[1] : value < selectedRange[1]);
+    return isInRange ? 1 : 0.15;
   };
 
   const getCountyStroke = (geo) => {
@@ -322,6 +340,7 @@ const MapChart = () => {
             <div className="map-footer">
               <Legend
                 colorScale={colorScale}
+                bins={histogramBins}
                 width={800}
                 height={60}
                 title={`${selectedRiskType.label} Score`}
@@ -394,6 +413,7 @@ const MapChart = () => {
               colorScale={colorScale}
               selectedCounty={selectedCounty}
               onBinClick={handleBinClick}
+              selectedRange={selectedRange}
               riskKey={selectedRiskType.key}
               riskLabel={selectedRiskType.label}
               domain={selectedRiskType.domain}

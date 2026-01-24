@@ -13,6 +13,7 @@ const Histogram = ({
   colorScale,
   selectedCounty,
   onBinClick,
+  selectedRange,
   riskKey = 'total_risk',
   riskLabel = 'Risk',
   domain = [1, 40],
@@ -68,11 +69,11 @@ const Histogram = ({
     // Extract risk values for selected type
     const riskValues = data.map((d) => d[riskKey]);
     const [minDomain, maxDomain] = domain;
-    const range = maxDomain - minDomain;
+    const rangeSize = maxDomain - minDomain;
 
     // Use fewer bins for smaller ranges (individual factors 1-10)
     // More bins for larger ranges (total risk 1-40)
-    const numBins = range <= 10 ? range : 15;
+    const numBins = rangeSize <= 10 ? rangeSize : 15;
 
     // Create bins with fixed domain
     const histogram = bin()
@@ -139,6 +140,18 @@ const Histogram = ({
       .append("g")
       .attr("class", "bar");
 
+    // Helper to check if a bin is selected (with tolerance for floating-point comparison)
+    const EPSILON = 0.0001;
+    const isBinSelected = (d) => {
+      if (!selectedRange) return false;
+      return d.x0 >= selectedRange[0] - EPSILON && d.x1 <= selectedRange[1] + EPSILON;
+    };
+
+    const rangesMatch = (r1, r2) => {
+      if (!r1 || !r2) return false;
+      return Math.abs(r1[0] - r2[0]) < EPSILON && Math.abs(r1[1] - r2[1]) < EPSILON;
+    };
+
     bars
       .append("rect")
       .attr("x", (d) => xScale(d.x0) + 1)
@@ -149,15 +162,30 @@ const Histogram = ({
         const midValue = (d.x0 + d.x1) / 2;
         return colorScale(midValue);
       })
-      .attr("opacity", 0.8)
+      .attr("opacity", (d) => {
+        if (!selectedRange) return 0.8;
+        return isBinSelected(d) ? 1 : 0.3;
+      })
+      .attr("stroke", (d) => isBinSelected(d) ? "white" : "none")
+      .attr("stroke-width", 2)
       .attr("cursor", "pointer")
       .on("click", function (event, d) {
         if (onBinClick) {
-          onBinClick([d.x0, d.x1]);
+          // Toggle behavior: if clicking the already-selected bin, deselect
+          if (rangesMatch(selectedRange, [d.x0, d.x1])) {
+            onBinClick(null);
+          } else {
+            onBinClick([d.x0, d.x1]);
+          }
         }
       })
       .on("mouseenter", function (event, d) {
-        select(this).transition().duration(100).attr("opacity", 1);
+        select(this)
+          .transition()
+          .duration(100)
+          .attr("opacity", 1)
+          .attr("stroke", "white")
+          .attr("stroke-width", 2);
 
         // Show tooltip - append to svg (not g) so it overlays everything including title
         const x = xScale((d.x0 + d.x1) / 2) + margin.left;
@@ -192,8 +220,14 @@ const Histogram = ({
           .attr("font-size", "11px")
           .text(`Score: ${Math.round(d.x0)}-${Math.round(d.x1)}`);
       })
-      .on("mouseleave", function () {
-        select(this).transition().duration(100).attr("opacity", 0.8);
+      .on("mouseleave", function (event, d) {
+        const isSelected = isBinSelected(d);
+        select(this)
+          .transition()
+          .duration(100)
+          .attr("opacity", selectedRange ? (isSelected ? 1 : 0.3) : 0.8)
+          .attr("stroke", isSelected ? "white" : "none")
+          .attr("stroke-width", isSelected ? 2 : 0);
         svg.selectAll(".histogram-tooltip, .histogram-tooltip-bg").remove();
       })
       .transition()
@@ -229,7 +263,7 @@ const Histogram = ({
         .duration(300)
         .attr("opacity", 0.9);
     }
-  }, [data, colorScale, dimensions, selectedCounty, onBinClick, theme, riskKey, riskLabel, domain]);
+  }, [data, colorScale, dimensions, selectedCounty, onBinClick, selectedRange, theme, riskKey, riskLabel, domain]);
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: '200px' }}>
@@ -248,6 +282,7 @@ Histogram.propTypes = {
   colorScale: PropTypes.func.isRequired,
   selectedCounty: PropTypes.object,
   onBinClick: PropTypes.func,
+  selectedRange: PropTypes.arrayOf(PropTypes.number),
   riskKey: PropTypes.string,
   riskLabel: PropTypes.string,
   domain: PropTypes.arrayOf(PropTypes.number),
@@ -264,6 +299,13 @@ const areEqual = (prevProps, nextProps) => {
   const nextId = nextProps.selectedCounty?.id;
   if (prevId !== nextId) {
     return false;
+  }
+  // Check selectedRange changes
+  const prevRange = prevProps.selectedRange;
+  const nextRange = nextProps.selectedRange;
+  if (prevRange !== nextRange) {
+    if (!prevRange || !nextRange) return false;
+    if (prevRange[0] !== nextRange[0] || prevRange[1] !== nextRange[1]) return false;
   }
   return true;
 };

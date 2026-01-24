@@ -5,8 +5,11 @@ import { scaleLinear } from "d3-scale";
 import "d3-transition";
 import { useTheme } from "./hooks/useTheme";
 
+const EPSILON = 0.0001;
+
 const Legend = ({
   colorScale,
+  bins = [],
   width = 300,
   height = 50,
   title = "Risk Level",
@@ -41,47 +44,65 @@ const Legend = ({
       .text(title);
 
     const domain = colorScale.domain();
-    const range = colorScale.range();
-    const segmentWidth = barWidth / range.length;
 
-    // Calculate thresholds for each segment
-    const step = (domain[1] - domain[0]) / range.length;
-    const thresholds = range.map((_, i) => ({
-      min: domain[0] + step * i,
-      max: domain[0] + step * (i + 1),
-      color: range[i],
-    }));
+    // Use bins if provided, otherwise fall back to color scale segments
+    let segments;
+    if (bins && bins.length > 0) {
+      // Use histogram bins for segment boundaries
+      segments = bins.map((bin) => ({
+        min: bin.x0,
+        max: bin.x1,
+        color: colorScale((bin.x0 + bin.x1) / 2),
+      }));
+    } else {
+      // Fallback: calculate segments from color scale
+      const range = colorScale.range();
+      const step = (domain[1] - domain[0]) / range.length;
+      segments = range.map((color, i) => ({
+        min: domain[0] + step * i,
+        max: domain[0] + step * (i + 1),
+        color: color,
+      }));
+    }
+
+    // Create scale to position segments proportionally
+    const xScale = scaleLinear().domain(domain).range([0, barWidth]);
+
+    // Helper for tolerance-based comparison
+    const rangesMatch = (r1, r2) => {
+      if (!r1 || !r2) return false;
+      return Math.abs(r1[0] - r2[0]) < EPSILON && Math.abs(r1[1] - r2[1]) < EPSILON;
+    };
+
+    const isSegmentSelected = (d) => {
+      if (!selectedRange) return false;
+      return d.min >= selectedRange[0] - EPSILON && d.max <= selectedRange[1] + EPSILON;
+    };
 
     // Draw color segments
-    const segments = g
+    const segmentGroups = g
       .selectAll(".legend-segment")
-      .data(thresholds)
+      .data(segments)
       .enter()
       .append("g")
       .attr("class", "legend-segment")
-      .attr("transform", (d, i) => `translate(${i * segmentWidth}, 0)`)
+      .attr("transform", (d) => `translate(${xScale(d.min)}, 0)`)
       .style("cursor", "pointer");
 
-    segments
+    segmentGroups
       .append("rect")
-      .attr("width", segmentWidth)
+      .attr("width", (d) => Math.max(0, xScale(d.max) - xScale(d.min)))
       .attr("height", barHeight)
       .attr("fill", (d) => d.color)
-      .attr("stroke", (d) => {
-        if (selectedRange && d.min >= selectedRange[0] && d.max <= selectedRange[1]) {
-          return "white";
-        }
-        return "none";
-      })
+      .attr("stroke", (d) => isSegmentSelected(d) ? "white" : "none")
       .attr("stroke-width", 2)
       .attr("opacity", (d) => {
         if (!selectedRange) return 1;
-        if (d.min >= selectedRange[0] && d.max <= selectedRange[1]) return 1;
-        return 0.3;
+        return isSegmentSelected(d) ? 1 : 0.3;
       })
       .on("click", function (event, d) {
         if (onRangeSelect) {
-          if (selectedRange && selectedRange[0] === d.min && selectedRange[1] === d.max) {
+          if (rangesMatch(selectedRange, [d.min, d.max])) {
             onRangeSelect(null);
           } else {
             onRangeSelect([d.min, d.max]);
@@ -92,8 +113,7 @@ const Legend = ({
         select(this).transition().duration(100).attr("stroke", "white").attr("stroke-width", 2);
       })
       .on("mouseleave", function (_, d) {
-        const isSelected =
-          selectedRange && d.min >= selectedRange[0] && d.max <= selectedRange[1];
+        const isSelected = isSegmentSelected(d);
         select(this)
           .transition()
           .duration(100)
@@ -102,8 +122,6 @@ const Legend = ({
       });
 
     // Add axis labels
-    const xScale = scaleLinear().domain(domain).range([0, barWidth]);
-
     const tickValues = [domain[0], (domain[0] + domain[1]) / 2, domain[1]];
     tickValues.forEach((tick) => {
       g.append("text")
@@ -131,7 +149,7 @@ const Legend = ({
       .attr("fill", theme.text.subtle)
       .attr("font-size", "9px")
       .text("High Risk");
-  }, [colorScale, width, height, title, onRangeSelect, selectedRange, theme]);
+  }, [colorScale, bins, width, height, title, onRangeSelect, selectedRange, theme]);
 
   return (
     <svg
@@ -145,6 +163,7 @@ const Legend = ({
 
 Legend.propTypes = {
   colorScale: PropTypes.func.isRequired,
+  bins: PropTypes.array,
   width: PropTypes.number,
   height: PropTypes.number,
   title: PropTypes.string,
