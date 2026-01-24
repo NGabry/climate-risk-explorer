@@ -39,8 +39,8 @@ const Legend = ({
       .attr("y", -8)
       .attr("text-anchor", "middle")
       .attr("fill", theme.text.primary)
-      .attr("font-size", "12px")
-      .attr("font-weight", "bold")
+      .attr("font-size", "18px")
+      .attr("font-weight", "600")
       .text(title);
 
     const domain = colorScale.domain();
@@ -140,28 +140,28 @@ const Legend = ({
     tickValues.forEach((tick) => {
       g.append("text")
         .attr("x", xScale(tick))
-        .attr("y", barHeight + 15)
+        .attr("y", barHeight + 16)
         .attr("text-anchor", "middle")
         .attr("fill", theme.text.secondary)
-        .attr("font-size", "10px")
+        .attr("font-size", "12px")
         .text(Math.round(tick));
     });
 
     // Add labels
     g.append("text")
-      .attr("x", 0)
-      .attr("y", barHeight + 24)
+      .attr("x", -30)
+      .attr("y", barHeight + 35)
       .attr("text-anchor", "start")
-      .attr("fill", theme.text.subtle)
-      .attr("font-size", "9px")
+      .attr("fill", theme.text.muted)
+      .attr("font-size", "16px")
       .text("Low Risk");
 
     g.append("text")
-      .attr("x", barWidth)
-      .attr("y", barHeight + 24)
+      .attr("x", barWidth + 35)
+      .attr("y", barHeight + 35)
       .attr("text-anchor", "end")
-      .attr("fill", theme.text.subtle)
-      .attr("font-size", "9px")
+      .attr("fill", theme.text.muted)
+      .attr("font-size", "16px")
       .text("High Risk");
   }, [colorScale, bins, width, height, title, onRangeSelect, selectedRanges, theme]);
 
