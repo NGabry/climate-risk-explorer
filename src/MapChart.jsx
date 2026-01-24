@@ -4,6 +4,7 @@ import {
   Geographies,
   Geography,
   ZoomableGroup,
+  Marker,
 } from "react-simple-maps";
 import { scaleQuantize } from "d3-scale";
 import { interpolateRdYlGn } from "d3-scale-chromatic";
@@ -31,6 +32,8 @@ const MapChart = () => {
   const [zoom, setZoom] = useState(MAP_CONFIG.defaultZoom);
   const [center, setCenter] = useState(MAP_CONFIG.defaultCenter);
   const [countyCentroids, setCountyCentroids] = useState(new Map());
+  const [cities, setCities] = useState([]);
+  const [cityMarker, setCityMarker] = useState(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -60,6 +63,13 @@ const MapChart = () => {
         }
       });
       setCountyCentroids(centroids);
+    });
+  }, []);
+
+  // Load cities for search
+  useEffect(() => {
+    json("/cities.json").then((citiesData) => {
+      setCities(citiesData);
     });
   }, []);
 
@@ -93,6 +103,7 @@ const MapChart = () => {
           });
         } else {
           setSelectedCounty(countyData);
+          setCityMarker(null); // Clear city marker when county selected
         }
       }
     },
@@ -143,6 +154,7 @@ const MapChart = () => {
 
   const handleSearchSelect = useCallback((county) => {
     setSelectedCounty(county);
+    setCityMarker(null); // Clear any city marker
     // Zoom to the county if we have its centroid
     const centroid = countyCentroids.get(county.id);
     if (centroid) {
@@ -150,6 +162,14 @@ const MapChart = () => {
       setZoom(MAP_CONFIG.selectionZoom);
     }
   }, [countyCentroids]);
+
+  const handleCitySelect = useCallback((city) => {
+    // Zoom to the city coordinates without selecting a county
+    setCenter([city.lng, city.lat]);
+    setZoom(MAP_CONFIG.selectionZoom);
+    // Show marker at city location
+    setCityMarker({ lat: city.lat, lng: city.lng, name: city.name });
+  }, []);
 
   const clearComparison = useCallback(() => {
     setComparisonCounties([]);
@@ -204,7 +224,7 @@ const MapChart = () => {
         <div className="top-section">
           <div className="map-section">
             <div className="map-controls">
-              <Search data={data} onSelect={handleSearchSelect} colorScale={colorScale} />
+              <Search data={data} cities={cities} onSelect={handleSearchSelect} onCitySelect={handleCitySelect} colorScale={colorScale} />
               <div className="zoom-controls">
                 <button onClick={handleZoomIn} title="Zoom In">+</button>
                 <button onClick={handleZoomOut} title="Zoom Out">-</button>
@@ -287,6 +307,14 @@ const MapChart = () => {
                         ))
                     }
                   </Geographies>
+                  {cityMarker && (
+                    <Marker coordinates={[cityMarker.lng, cityMarker.lat]}>
+                      <g className="city-marker" onClick={() => setCityMarker(null)}>
+                        <circle r={8 / zoom} className="city-marker-pulse" />
+                        <circle r={4 / zoom} className="city-marker-dot" />
+                      </g>
+                    </Marker>
+                  )}
                 </ZoomableGroup>
               </ComposableMap>
             </div>

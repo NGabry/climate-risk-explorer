@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 
-const Search = ({ data, onSelect, colorScale }) => {
+const Search = ({ data, cities, onSelect, onCitySelect, colorScale }) => {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -11,17 +11,38 @@ const Search = ({ data, onSelect, colorScale }) => {
   const filteredResults = useMemo(() => {
     if (!query || query.length < 2) return [];
     const lowerQuery = query.toLowerCase();
-    return data
+
+    // Search counties
+    const countyResults = data
       .filter((d) => d.name.toLowerCase().includes(lowerQuery))
-      .sort((a, b) => {
-        const aStarts = a.name.toLowerCase().startsWith(lowerQuery);
-        const bStarts = b.name.toLowerCase().startsWith(lowerQuery);
-        if (aStarts && !bStarts) return -1;
-        if (!aStarts && bStarts) return 1;
-        return a.name.localeCompare(b.name);
+      .map((d) => ({ ...d, type: 'county' }))
+      .slice(0, 6);
+
+    // Search cities (exclude AK/HI - no climate data)
+    const cityResults = (cities || [])
+      .filter((c) => {
+        if (c.state === 'AK' || c.state === 'HI') return false;
+        const cityState = `${c.city}, ${c.state}`.toLowerCase();
+        const cityOnly = c.city.toLowerCase();
+        return cityState.includes(lowerQuery) || cityOnly.includes(lowerQuery);
       })
-      .slice(0, 10);
-  }, [data, query]);
+      .map((c) => ({ ...c, type: 'city', name: `${c.city}, ${c.state}` }))
+      .slice(0, 6);
+
+    // Combine and sort - prioritize exact starts
+    const combined = [...countyResults, ...cityResults];
+    combined.sort((a, b) => {
+      const aName = a.type === 'city' ? a.city.toLowerCase() : a.name.toLowerCase();
+      const bName = b.type === 'city' ? b.city.toLowerCase() : b.name.toLowerCase();
+      const aStarts = aName.startsWith(lowerQuery);
+      const bStarts = bName.startsWith(lowerQuery);
+      if (aStarts && !bStarts) return -1;
+      if (!aStarts && bStarts) return 1;
+      return aName.localeCompare(bName);
+    });
+
+    return combined.slice(0, 10);
+  }, [data, cities, query]);
 
   useEffect(() => {
     setHighlightedIndex(0);
@@ -54,8 +75,12 @@ const Search = ({ data, onSelect, colorScale }) => {
     }
   };
 
-  const handleSelect = (county) => {
-    onSelect(county);
+  const handleSelect = (item) => {
+    if (item.type === 'city') {
+      onCitySelect?.(item);
+    } else {
+      onSelect(item);
+    }
     setQuery("");
     setIsOpen(false);
     inputRef.current?.blur();
@@ -80,7 +105,7 @@ const Search = ({ data, onSelect, colorScale }) => {
           ref={inputRef}
           type="text"
           className="search-input"
-          placeholder="Search counties..."
+          placeholder="Search counties or cities..."
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -105,28 +130,38 @@ const Search = ({ data, onSelect, colorScale }) => {
 
       {isOpen && filteredResults.length > 0 && (
         <ul className="search-results" ref={listRef}>
-          {filteredResults.map((county, index) => (
+          {filteredResults.map((item, index) => (
             <li
-              key={county.id}
+              key={item.type === 'city' ? `city-${item.city}-${item.state}` : item.id}
               className={`search-result-item ${
                 index === highlightedIndex ? "highlighted" : ""
               }`}
-              onClick={() => handleSelect(county)}
+              onClick={() => handleSelect(item)}
               onMouseEnter={() => setHighlightedIndex(index)}
             >
-              <span
-                className="result-risk-indicator"
-                style={{ backgroundColor: colorScale(county.total_risk) }}
-              />
-              <span className="result-name">{county.name}</span>
-              <span className="result-risk">Risk: {county.total_risk}</span>
+              {item.type === 'county' ? (
+                <>
+                  <span
+                    className="result-risk-indicator"
+                    style={{ backgroundColor: colorScale(item.total_risk) }}
+                  />
+                  <span className="result-name">{item.name}</span>
+                  <span className="result-type county">County</span>
+                </>
+              ) : (
+                <>
+                  <span className="result-city-icon">📍</span>
+                  <span className="result-name">{item.name}</span>
+                  <span className="result-type city">City</span>
+                </>
+              )}
             </li>
           ))}
         </ul>
       )}
 
       {isOpen && query.length >= 2 && filteredResults.length === 0 && (
-        <div className="search-no-results">No counties found</div>
+        <div className="search-no-results">No results found</div>
       )}
     </div>
   );
@@ -140,7 +175,16 @@ Search.propTypes = {
       total_risk: PropTypes.number.isRequired,
     })
   ).isRequired,
+  cities: PropTypes.arrayOf(
+    PropTypes.shape({
+      city: PropTypes.string.isRequired,
+      state: PropTypes.string.isRequired,
+      lat: PropTypes.number.isRequired,
+      lng: PropTypes.number.isRequired,
+    })
+  ),
   onSelect: PropTypes.func.isRequired,
+  onCitySelect: PropTypes.func,
   colorScale: PropTypes.func.isRequired,
 };
 
