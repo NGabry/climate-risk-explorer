@@ -386,7 +386,7 @@ const MapChart = () => {
                     <Marker coordinates={[cityMarker.lng, cityMarker.lat]}>
                       <g className="city-marker" onClick={() => setCityMarker(null)}>
                         <circle r={8 / zoom} className="city-marker-pulse" />
-                        <circle r={4 / zoom} className="city-marker-dot" />
+                        <circle r={0.05 / zoom} className="city-marker-dot" />
                       </g>
                     </Marker>
                   )}
