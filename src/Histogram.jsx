@@ -159,40 +159,42 @@ const Histogram = ({
       .on("mouseenter", function (event, d) {
         select(this).transition().duration(100).attr("opacity", 1);
 
-        // Show tooltip
-        const x = xScale((d.x0 + d.x1) / 2);
-        const y = yScale(d.length);
+        // Show tooltip - append to svg (not g) so it overlays everything including title
+        const x = xScale((d.x0 + d.x1) / 2) + margin.left;
+        const y = Math.max(margin.top + 10, yScale(d.length) + margin.top);
 
-        g.append("rect")
+        svg.append("rect")
           .attr("class", "histogram-tooltip-bg")
-          .attr("x", x - 30)
-          .attr("y", y - 35)
-          .attr("width", 60)
-          .attr("height", 28)
+          .attr("x", x - 45)
+          .attr("y", y - 45)
+          .attr("width", 90)
+          .attr("height", 40)
           .attr("fill", theme.tooltip.bg)
-          .attr("rx", 4);
+          .attr("rx", 6)
+          .style("filter", "drop-shadow(0 2px 4px rgba(0,0,0,0.3))");
 
-        g.append("text")
+        svg.append("text")
           .attr("class", "histogram-tooltip")
           .attr("x", x)
-          .attr("y", y - 22)
+          .attr("y", y - 28)
           .attr("text-anchor", "middle")
           .attr("fill", theme.tooltip.text)
-          .attr("font-size", "10px")
+          .attr("font-size", "13px")
+          .attr("font-weight", "600")
           .text(`${d.length} counties`);
 
-        g.append("text")
+        svg.append("text")
           .attr("class", "histogram-tooltip")
           .attr("x", x)
-          .attr("y", y - 10)
+          .attr("y", y - 12)
           .attr("text-anchor", "middle")
           .attr("fill", theme.tooltip.textMuted)
-          .attr("font-size", "9px")
-          .text(`Risk: ${Math.round(d.x0)}-${Math.round(d.x1)}`);
+          .attr("font-size", "11px")
+          .text(`Score: ${Math.round(d.x0)}-${Math.round(d.x1)}`);
       })
       .on("mouseleave", function () {
         select(this).transition().duration(100).attr("opacity", 0.8);
-        g.selectAll(".histogram-tooltip, .histogram-tooltip-bg").remove();
+        svg.selectAll(".histogram-tooltip, .histogram-tooltip-bg").remove();
       })
       .transition()
       .duration(500)
