@@ -7,7 +7,9 @@ import {
 } from "react-simple-maps";
 import { scaleQuantize } from "d3-scale";
 import { interpolateRdYlGn } from "d3-scale-chromatic";
-import { csv } from "d3-fetch";
+import { csv, json } from "d3-fetch";
+import { geoCentroid } from "d3-geo";
+import { feature } from "topojson-client";
 import { AkHiStates, AkHiCounties } from "./AkHi";
 
 import D3RadarChart from "./D3RadarChart";
@@ -16,7 +18,7 @@ import Histogram from "./Histogram";
 import Statistics from "./Statistics";
 import Tooltip from "./Tooltip";
 import Search from "./Search";
-import { CHART_COLORS, MAP_CONFIG } from "./constants";
+import { CHART_COLORS, MAP_CONFIG, MAP_COLORS } from "./constants";
 
 const colorScale = scaleQuantize()
   .domain([1, 40])
@@ -35,6 +37,7 @@ const MapChart = () => {
   const [comparisonCounties, setComparisonCounties] = useState([]);
   const [zoom, setZoom] = useState(MAP_CONFIG.defaultZoom);
   const [center, setCenter] = useState(MAP_CONFIG.defaultCenter);
+  const [countyCentroids, setCountyCentroids] = useState(new Map());
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -49,6 +52,21 @@ const MapChart = () => {
       total_risk: +d.total_risk,
     })).then((counties) => {
       setData(counties);
+    });
+  }, []);
+
+  // Load county centroids for zoom-to-county feature
+  useEffect(() => {
+    json(MAP_CONFIG.geoUrl).then((topology) => {
+      const counties = feature(topology, topology.objects.counties);
+      const centroids = new Map();
+      counties.features.forEach((f) => {
+        const centroid = geoCentroid(f);
+        if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
+          centroids.set(f.id, centroid);
+        }
+      });
+      setCountyCentroids(centroids);
     });
   }, []);
 
@@ -125,7 +143,13 @@ const MapChart = () => {
 
   const handleSearchSelect = useCallback((county) => {
     setSelectedCounty(county);
-  }, []);
+    // Zoom to the county if we have its centroid
+    const centroid = countyCentroids.get(county.id);
+    if (centroid) {
+      setCenter(centroid);
+      setZoom(MAP_CONFIG.selectionZoom);
+    }
+  }, [countyCentroids]);
 
   const clearComparison = useCallback(() => {
     setComparisonCounties([]);
@@ -149,15 +173,15 @@ const MapChart = () => {
 
   const getCountyStroke = (geo) => {
     if (selectedCounty && selectedCounty.id === geo.id) {
-      return { color: "#fff", width: 2 };
+      return { color: MAP_COLORS.selection, width: 3 };
     }
     if (comparisonCounties.find((c) => c.id === geo.id)) {
-      return { color: "#00bfff", width: 1.5 };
+      return { color: MAP_COLORS.selection, width: 2 };
     }
     if (hoveredCounty && hoveredCounty.id === geo.id) {
-      return { color: "#fff", width: 1 };
+      return { color: MAP_COLORS.selection, width: 1.5 };
     }
-    return { color: "#000", width: 0.2 };
+    return { color: MAP_COLORS.defaultStroke, width: 0.2 };
   };
 
   // Combine selected county with comparison counties for radar

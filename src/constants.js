@@ -24,4 +24,11 @@ export const MAP_CONFIG = {
   defaultCenter: [-96, 38],
   defaultZoom: 1,
   maxZoom: 8,
+  selectionZoom: 4,
+};
+
+// Map interaction colors
+export const MAP_COLORS = {
+  selection: '#00bfff',      // Light blue for selected/hovered counties
+  defaultStroke: '#000',     // Default county border
 };
