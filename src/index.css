@@ -4,13 +4,70 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #1a1a2e;
+
+  /* Text colors */
+  --text-primary: rgba(255, 255, 255, 0.9);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --text-subtle: rgba(255, 255, 255, 0.4);
+
+  /* Backgrounds */
+  --bg-app: #1a1a2e;
+  --bg-panel: rgba(255, 255, 255, 0.05);
+  --bg-overlay: rgba(0, 0, 0, 0.2);
+  --bg-tooltip: rgba(20, 20, 40, 0.95);
+  --bg-input: rgba(255, 255, 255, 0.1);
+  --bg-search-results: #2a2a4a;
+
+  /* Borders */
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.2);
+  --border-hover: rgba(255, 255, 255, 0.4);
+
+  /* Grid/Axis (for D3) */
+  --grid-color: rgba(255, 255, 255, 0.2);
+  --axis-color: rgba(255, 255, 255, 0.7);
+
+  /* Accent colors */
+  --accent-danger: rgba(255, 99, 132, 1);
+  --accent-danger-muted: rgba(255, 99, 132, 0.3);
+  --accent-danger-bg: rgba(255, 99, 132, 0.5);
+  --accent-info: #00bfff;
+
+  /* Use variables for main colors */
+  color: var(--text-primary);
+  background-color: var(--bg-app);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --text-primary: #333;
+    --text-secondary: rgba(0, 0, 0, 0.7);
+    --text-muted: rgba(0, 0, 0, 0.5);
+    --text-subtle: rgba(0, 0, 0, 0.4);
+
+    --bg-app: #f5f5f5;
+    --bg-panel: white;
+    --bg-overlay: rgba(0, 0, 0, 0.05);
+    --bg-tooltip: rgba(255, 255, 255, 0.95);
+    --bg-input: white;
+    --bg-search-results: white;
+
+    --border-default: #ddd;
+    --border-subtle: rgba(0, 0, 0, 0.1);
+    --border-hover: rgba(0, 0, 0, 0.3);
+
+    --grid-color: rgba(0, 0, 0, 0.15);
+    --axis-color: rgba(0, 0, 0, 0.5);
+
+    --accent-danger-muted: rgba(255, 99, 132, 0.15);
+    --accent-danger-bg: rgba(255, 99, 132, 0.25);
+  }
 }
 
 html {
@@ -60,10 +117,10 @@ svg {
 .radar-section {
   width: 420px;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-panel);
   border-radius: 12px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-default);
 }
 
 .bottom-section {
@@ -75,10 +132,10 @@ svg {
 .chart-panel {
   flex: 1;
   min-width: 0;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-panel);
   border-radius: 12px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-default);
 }
 
 .histogram-panel {
@@ -96,14 +153,14 @@ svg {
 .radar-header h3 {
   margin: 0;
   font-size: 1.1em;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
 }
 
 .clear-btn {
   padding: 4px 12px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.75em;
@@ -111,7 +168,7 @@ svg {
 }
 
 .clear-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-input);
 }
 
 .radar-legend {
@@ -136,17 +193,17 @@ svg {
 }
 
 .legend-name {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
 }
 
 .legend-risk {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   font-size: 0.9em;
 }
 
 .hint {
   font-size: 0.8em;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-subtle);
   margin-top: 10px;
 }
 
@@ -187,9 +244,9 @@ svg {
 .zoom-controls button {
   width: 36px;
   height: 36px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-input);
+  color: var(--text-primary);
   border-radius: 6px;
   cursor: pointer;
   font-size: 18px;
@@ -204,16 +261,16 @@ svg {
 }
 
 .zoom-controls button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: var(--bg-panel);
+  border-color: var(--border-hover);
 }
 
 /* Map Wrapper */
 .map-wrapper {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-overlay);
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-default);
   aspect-ratio: 1.8 / 1;
 }
 
@@ -233,9 +290,9 @@ svg {
 
 .clear-filter-btn {
   padding: 8px 16px;
-  background: rgba(255, 99, 132, 0.3);
-  border: 1px solid rgba(255, 99, 132, 0.5);
-  color: white;
+  background: var(--accent-danger-muted);
+  border: 1px solid var(--accent-danger-bg);
+  color: var(--text-primary);
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
@@ -243,7 +300,7 @@ svg {
 }
 
 .clear-filter-btn:hover {
-  background: rgba(255, 99, 132, 0.5);
+  background: var(--accent-danger-bg);
 }
 
 /* Sidebar Panels */
@@ -251,10 +308,10 @@ svg {
 .stats-panel,
 .histogram-panel,
 .comparison-panel {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-panel);
   border-radius: 12px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-default);
 }
 
 .selected-county-panel {
@@ -266,27 +323,27 @@ svg {
 .county-name {
   font-size: 1.3em;
   margin: 0 0 5px 0;
-  color: white;
+  color: var(--text-primary);
   text-align: center;
 }
 
 .county-risk {
   font-size: 1em;
   margin: 0 0 10px 0;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   font-weight: normal;
   text-align: center;
 }
 
 .county-risk span {
   font-weight: bold;
-  color: white;
+  color: var(--text-primary);
 }
 
 .no-selection {
   text-align: center;
   padding: 40px 20px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
 }
 
 .no-selection p {
@@ -295,18 +352,18 @@ svg {
 
 .no-selection .hint {
   font-size: 0.85em;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-subtle);
 }
 
 /* Statistics Component */
 .statistics-container {
-  color: white;
+  color: var(--text-primary);
 }
 
 .statistics-title {
   font-size: 0.9em;
   margin: 0 0 12px 0;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -324,7 +381,7 @@ svg {
 
 .stat-label {
   font-size: 0.7em;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -332,19 +389,19 @@ svg {
 .stat-value {
   font-size: 0.95em;
   font-weight: 600;
-  color: white;
+  color: var(--text-primary);
 }
 
 .selected-stats {
   margin-top: 15px;
   padding-top: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-default);
 }
 
 .selected-county-name {
   font-size: 1.4em;
   font-weight: 600;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 12px;
 }
 
@@ -356,18 +413,18 @@ svg {
 
 .percentile-label {
   font-size: 0.75em;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
 }
 
 .percentile-value {
   font-size: 1.5em;
   font-weight: bold;
-  color: white;
+  color: var(--text-primary);
 }
 
 .percentile-bar {
   height: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-default);
   border-radius: 4px;
   position: relative;
   overflow: visible;
@@ -395,7 +452,7 @@ svg {
   display: flex;
   justify-content: space-between;
   font-size: 0.65em;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-subtle);
 }
 
 /* Comparison Panel */
@@ -408,14 +465,14 @@ svg {
 
 .comparison-header span {
   font-size: 0.9em;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
 }
 
 .comparison-header button {
   padding: 4px 12px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.75em;
@@ -423,8 +480,8 @@ svg {
 }
 
 .comparison-header button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: var(--bg-input);
+  border-color: var(--border-hover);
 }
 
 /* Search Component */
@@ -442,29 +499,29 @@ svg {
 .search-icon {
   position: absolute;
   left: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   pointer-events: none;
 }
 
 .search-input {
   width: 100%;
   padding: 10px 35px 10px 40px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  color: white;
+  color: var(--text-primary);
   font-size: 14px;
   outline: none;
   transition: all 0.2s ease;
 }
 
 .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-subtle);
 }
 
 .search-input:focus {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: var(--bg-panel);
+  border-color: var(--border-hover);
 }
 
 .search-clear {
@@ -472,14 +529,14 @@ svg {
   right: 10px;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 14px;
   padding: 4px 8px;
 }
 
 .search-clear:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 .search-results {
@@ -488,8 +545,8 @@ svg {
   left: 0;
   right: 0;
   margin-top: 4px;
-  background: #2a2a4a;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-search-results);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   max-height: 300px;
   overflow-y: auto;
@@ -511,7 +568,7 @@ svg {
 
 .search-result-item:hover,
 .search-result-item.highlighted {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-input);
 }
 
 .result-risk-indicator {
@@ -524,7 +581,7 @@ svg {
 .result-name {
   flex: 1;
   font-size: 13px;
-  color: white;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -532,7 +589,7 @@ svg {
 
 .result-risk {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
@@ -543,18 +600,18 @@ svg {
   right: 0;
   margin-top: 4px;
   padding: 12px;
-  background: #2a2a4a;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-search-results);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   font-size: 13px;
   text-align: center;
 }
 
 /* Tooltip Component */
 .map-tooltip {
-  background: rgba(20, 20, 40, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-tooltip);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   padding: 12px;
   min-width: 180px;
@@ -564,13 +621,13 @@ svg {
 .tooltip-header {
   margin-bottom: 8px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .tooltip-name {
   font-size: 13px;
   font-weight: 600;
-  color: white;
+  color: var(--text-primary);
 }
 
 .tooltip-content {
@@ -593,13 +650,13 @@ svg {
 
 .risk-label {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
 }
 
 .risk-value {
   font-size: 14px;
   font-weight: bold;
-  color: white;
+  color: var(--text-primary);
   margin-left: auto;
 }
 
@@ -617,88 +674,27 @@ svg {
 }
 
 .factor-label {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
 }
 
 .factor-value {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .tooltip-footer {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-default);
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-subtle);
   text-align: center;
 }
 
-/* Light mode */
+/* Light mode - only component-specific overrides that can't use variables */
 @media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #f5f5f5;
-  }
-
-  .map-container {
-    background: #f5f5f5;
-  }
-
-  .map-wrapper {
-    background: white;
-    border-color: #ddd;
-  }
-
-  .sidebar > div {
-    background: white;
-    border-color: #ddd;
-  }
-
-  .zoom-controls button {
-    background: white;
-    border-color: #ddd;
-    color: #333;
-  }
-
-  .zoom-controls button:hover {
-    background: #f0f0f0;
-  }
-
-  .search-input {
-    background: white;
-    border-color: #ddd;
-    color: #333;
-  }
-
-  .search-results {
-    background: white;
-    border-color: #ddd;
-  }
-
-  .search-result-item:hover,
-  .search-result-item.highlighted {
-    background: #f5f5f5;
-  }
-
-  .map-tooltip {
-    background: white;
-    border-color: #ddd;
-  }
-
-  .tooltip-name,
-  .risk-value,
-  .county-name,
-  .stat-value,
-  .percentile-value {
-    color: #333;
-  }
-
-  .tooltip-footer,
-  .stat-label,
-  .factor-label,
-  .risk-label {
-    color: #666;
+  .percentile-marker {
+    background: #333;
   }
 }
 

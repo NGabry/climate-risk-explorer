@@ -16,17 +16,7 @@ import Histogram from "./Histogram";
 import Statistics from "./Statistics";
 import Tooltip from "./Tooltip";
 import Search from "./Search";
-
-const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
-const statesGeoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
-
-const RADAR_COLORS = [
-  "rgba(255, 99, 132, 1)",   // pink - primary
-  "rgba(54, 162, 235, 1)",   // blue
-  "rgba(255, 206, 86, 1)",   // yellow
-  "rgba(75, 192, 192, 1)",   // teal
-  "rgba(153, 102, 255, 1)",  // purple
-];
+import { CHART_COLORS, MAP_CONFIG } from "./constants";
 
 const colorScale = scaleQuantize()
   .domain([1, 40])
@@ -43,8 +33,8 @@ const MapChart = () => {
   const [tooltipPosition, setTooltipPosition] = useState(null);
   const [selectedRange, setSelectedRange] = useState(null);
   const [comparisonCounties, setComparisonCounties] = useState([]);
-  const [zoom, setZoom] = useState(1);
-  const [center, setCenter] = useState([-96, 38]);
+  const [zoom, setZoom] = useState(MAP_CONFIG.defaultZoom);
+  const [center, setCenter] = useState(MAP_CONFIG.defaultCenter);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -108,16 +98,16 @@ const MapChart = () => {
   }, []);
 
   const handleZoomIn = () => {
-    setZoom((prev) => Math.min(prev * 1.5, 8));
+    setZoom((prev) => Math.min(prev * 1.5, MAP_CONFIG.maxZoom));
   };
 
   const handleZoomOut = () => {
-    setZoom((prev) => Math.max(prev / 1.5, 1));
+    setZoom((prev) => Math.max(prev / 1.5, MAP_CONFIG.defaultZoom));
   };
 
   const handleReset = () => {
-    setZoom(1);
-    setCenter([-96, 38]);
+    setZoom(MAP_CONFIG.defaultZoom);
+    setCenter(MAP_CONFIG.defaultCenter);
   };
 
   const handleMoveEnd = (position) => {
@@ -204,10 +194,10 @@ const MapChart = () => {
                   zoom={zoom}
                   center={center}
                   onMoveEnd={handleMoveEnd}
-                  minZoom={1}
-                  maxZoom={8}
+                  minZoom={MAP_CONFIG.defaultZoom}
+                  maxZoom={MAP_CONFIG.maxZoom}
                 >
-                  <Geographies geography={geoUrl}>
+                  <Geographies geography={MAP_CONFIG.geoUrl}>
                     {({ geographies }) =>
                       geographies
                         .filter((geo) => !AkHiCounties.includes(geo.id))
@@ -242,7 +232,7 @@ const MapChart = () => {
                         })
                     }
                   </Geographies>
-                  <Geographies geography={statesGeoUrl}>
+                  <Geographies geography={MAP_CONFIG.statesGeoUrl}>
                     {({ geographies }) =>
                       geographies
                         .filter((geo) => !AkHiStates.includes(geo.id))
@@ -269,7 +259,7 @@ const MapChart = () => {
             <div className="map-footer">
               <Legend
                 colorScale={colorScale}
-                width={400}
+                width={800}
                 height={60}
                 title="Climate Risk Score"
                 onRangeSelect={handleRangeSelect}
@@ -305,7 +295,7 @@ const MapChart = () => {
                     <div key={county.id} className="radar-legend-item">
                       <span
                         className="legend-color"
-                        style={{ backgroundColor: county.isPrimary ? RADAR_COLORS[0] : RADAR_COLORS[(i % (RADAR_COLORS.length - 1)) + 1] }}
+                        style={{ backgroundColor: county.isPrimary ? CHART_COLORS[0].stroke : CHART_COLORS[(i % (CHART_COLORS.length - 1)) + 1].stroke }}
                       />
                       <span className="legend-name">
                         {county.name.replace(" County", "").replace(" Parish", "")}

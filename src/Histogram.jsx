@@ -6,6 +6,7 @@ import { bin, max, extent } from "d3-array";
 import { axisBottom, axisLeft } from "d3-axis";
 import { format } from "d3-format";
 import "d3-transition";
+import { useTheme } from "./hooks/useTheme";
 
 const Histogram = ({
   data,
@@ -16,6 +17,7 @@ const Histogram = ({
   const containerRef = useRef(null);
   const svgRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 400, height: 200 });
+  const theme = useTheme();
 
   useEffect(() => {
     const container = containerRef.current;
@@ -55,7 +57,7 @@ const Histogram = ({
       .attr("x", width / 2)
       .attr("y", 22)
       .attr("text-anchor", "middle")
-      .attr("fill", "white")
+      .attr("fill", theme.text.primary)
       .attr("font-size", "16px")
       .attr("font-weight", "600")
       .text("Risk Distribution");
@@ -87,9 +89,9 @@ const Histogram = ({
     g.append("g")
       .attr("transform", `translate(0, ${innerHeight})`)
       .call(xAxis)
-      .attr("color", "rgba(255, 255, 255, 0.7)")
+      .attr("color", theme.axis)
       .selectAll("text")
-      .attr("fill", "rgba(255, 255, 255, 0.8)")
+      .attr("fill", theme.text.secondary)
       .attr("font-size", "12px");
 
     // Y axis
@@ -97,9 +99,9 @@ const Histogram = ({
 
     g.append("g")
       .call(yAxis)
-      .attr("color", "rgba(255, 255, 255, 0.7)")
+      .attr("color", theme.axis)
       .selectAll("text")
-      .attr("fill", "rgba(255, 255, 255, 0.8)")
+      .attr("fill", theme.text.secondary)
       .attr("font-size", "12px");
 
     // X axis label
@@ -107,7 +109,7 @@ const Histogram = ({
       .attr("x", innerWidth / 2)
       .attr("y", innerHeight + 40)
       .attr("text-anchor", "middle")
-      .attr("fill", "rgba(255, 255, 255, 0.7)")
+      .attr("fill", theme.text.subtle)
       .attr("font-size", "13px")
       .text("Total Risk Score");
 
@@ -117,7 +119,7 @@ const Histogram = ({
       .attr("x", -innerHeight / 2)
       .attr("y", -40)
       .attr("text-anchor", "middle")
-      .attr("fill", "rgba(255, 255, 255, 0.7)")
+      .attr("fill", theme.text.subtle)
       .attr("font-size", "13px")
       .text("Counties");
 
@@ -159,7 +161,7 @@ const Histogram = ({
           .attr("y", y - 35)
           .attr("width", 60)
           .attr("height", 28)
-          .attr("fill", "rgba(0, 0, 0, 0.85)")
+          .attr("fill", theme.tooltip.bg)
           .attr("rx", 4);
 
         g.append("text")
@@ -167,7 +169,7 @@ const Histogram = ({
           .attr("x", x)
           .attr("y", y - 22)
           .attr("text-anchor", "middle")
-          .attr("fill", "white")
+          .attr("fill", theme.tooltip.text)
           .attr("font-size", "10px")
           .text(`${d.length} counties`);
 
@@ -176,7 +178,7 @@ const Histogram = ({
           .attr("x", x)
           .attr("y", y - 10)
           .attr("text-anchor", "middle")
-          .attr("fill", "rgba(255, 255, 255, 0.7)")
+          .attr("fill", theme.tooltip.textMuted)
           .attr("font-size", "9px")
           .text(`Risk: ${Math.round(d.x0)}-${Math.round(d.x1)}`);
       })
@@ -200,7 +202,7 @@ const Histogram = ({
         .attr("x2", xPos)
         .attr("y1", 0)
         .attr("y2", innerHeight)
-        .attr("stroke", "white")
+        .attr("stroke", theme.stroke)
         .attr("stroke-width", 2.5)
         .attr("opacity", 0)
         .transition()
@@ -211,13 +213,13 @@ const Histogram = ({
       const triangleSize = 8;
       g.append("path")
         .attr("d", `M${xPos},${innerHeight + 8} L${xPos - triangleSize},${innerHeight + 8 + triangleSize * 1.5} L${xPos + triangleSize},${innerHeight + 8 + triangleSize * 1.5} Z`)
-        .attr("fill", "white")
+        .attr("fill", theme.stroke)
         .attr("opacity", 0)
         .transition()
         .duration(300)
         .attr("opacity", 0.9);
     }
-  }, [data, colorScale, dimensions, selectedCounty, onBinClick]);
+  }, [data, colorScale, dimensions, selectedCounty, onBinClick, theme]);
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: '200px' }}>

@@ -9,11 +9,5 @@ h1 {
   margin: 20px 0;
   font-size: 1.8em;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-@media (prefers-color-scheme: light) {
-  h1 {
-    color: #1a1a2e;
-  }
+  color: var(--text-primary);
 }

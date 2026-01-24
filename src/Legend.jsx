@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { select } from "d3-selection";
 import { scaleLinear } from "d3-scale";
 import "d3-transition";
+import { useTheme } from "./hooks/useTheme";
 
 const Legend = ({
   colorScale,
@@ -13,6 +14,7 @@ const Legend = ({
   selectedRange,
 }) => {
   const svgRef = useRef(null);
+  const theme = useTheme();
 
   useEffect(() => {
     if (!svgRef.current || !colorScale) return;
@@ -33,7 +35,7 @@ const Legend = ({
       .attr("x", barWidth / 2)
       .attr("y", -8)
       .attr("text-anchor", "middle")
-      .attr("fill", "white")
+      .attr("fill", theme.text.primary)
       .attr("font-size", "12px")
       .attr("font-weight", "bold")
       .text(title);
@@ -108,7 +110,7 @@ const Legend = ({
         .attr("x", xScale(tick))
         .attr("y", barHeight + 15)
         .attr("text-anchor", "middle")
-        .attr("fill", "rgba(255, 255, 255, 0.8)")
+        .attr("fill", theme.text.secondary)
         .attr("font-size", "10px")
         .text(Math.round(tick));
     });
@@ -118,7 +120,7 @@ const Legend = ({
       .attr("x", 0)
       .attr("y", barHeight + 24)
       .attr("text-anchor", "start")
-      .attr("fill", "rgba(255, 255, 255, 0.6)")
+      .attr("fill", theme.text.subtle)
       .attr("font-size", "9px")
       .text("Low Risk");
 
@@ -126,10 +128,10 @@ const Legend = ({
       .attr("x", barWidth)
       .attr("y", barHeight + 24)
       .attr("text-anchor", "end")
-      .attr("fill", "rgba(255, 255, 255, 0.6)")
+      .attr("fill", theme.text.subtle)
       .attr("font-size", "9px")
       .text("High Risk");
-  }, [colorScale, width, height, title, onRangeSelect, selectedRange]);
+  }, [colorScale, width, height, title, onRangeSelect, selectedRange, theme]);
 
   return (
     <svg

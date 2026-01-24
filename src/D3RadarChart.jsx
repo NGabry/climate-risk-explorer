@@ -4,26 +4,12 @@ import { select } from "d3-selection";
 import { scaleLinear } from "d3-scale";
 import { lineRadial, curveLinearClosed } from "d3-shape";
 import "d3-transition";
-
-const COLORS = [
-  { fill: "rgba(255, 99, 132, 0.25)", stroke: "rgba(255, 99, 132, 1)" },
-  { fill: "rgba(54, 162, 235, 0.25)", stroke: "rgba(54, 162, 235, 1)" },
-  { fill: "rgba(255, 206, 86, 0.25)", stroke: "rgba(255, 206, 86, 1)" },
-  { fill: "rgba(75, 192, 192, 0.25)", stroke: "rgba(75, 192, 192, 1)" },
-  { fill: "rgba(153, 102, 255, 0.25)", stroke: "rgba(153, 102, 255, 1)" },
-];
-
-const FACTORS = [
-  { key: "heat", label: "Heat" },
-  { key: "wet_bulb", label: "Wet Bulb" },
-  { key: "farm_crop_yields", label: "Crop Yields" },
-  { key: "sea_level_rise", label: "Sea Level" },
-  { key: "wildfires", label: "Wildfire" },
-  { key: "economic_damages", label: "Economic" },
-];
+import { useTheme } from "./hooks/useTheme";
+import { CHART_COLORS, RISK_FACTORS } from "./constants";
 
 const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
   const svgRef = useRef(null);
+  const theme = useTheme();
 
   useEffect(() => {
     if (!counties || counties.length === 0 || !svgRef.current) return;
@@ -34,7 +20,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
     const centerX = width / 2;
     const centerY = height / 2;
 
-    const angleSlice = (Math.PI * 2) / FACTORS.length;
+    const angleSlice = (Math.PI * 2) / RISK_FACTORS.length;
     const maxValue = 10;
 
     const rScale = scaleLinear().domain([0, maxValue]).range([0, radius]);
@@ -52,19 +38,19 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
       g.append("circle")
         .attr("r", levelRadius)
         .attr("fill", "none")
-        .attr("stroke", "rgba(255, 255, 255, 0.2)")
+        .attr("stroke", theme.grid)
         .attr("stroke-width", 1);
 
       g.append("text")
         .attr("x", 5)
         .attr("y", -levelRadius)
-        .attr("fill", "rgba(255, 255, 255, 0.5)")
+        .attr("fill", theme.text.muted)
         .attr("font-size", "10px")
         .text((maxValue / levels) * level);
     }
 
     // Draw axis lines and labels
-    FACTORS.forEach((factor, i) => {
+    RISK_FACTORS.forEach((factor, i) => {
       const angle = angleSlice * i - Math.PI / 2;
       const x = Math.cos(angle) * radius;
       const y = Math.sin(angle) * radius;
@@ -74,7 +60,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
         .attr("y1", 0)
         .attr("x2", x)
         .attr("y2", y)
-        .attr("stroke", "rgba(255, 255, 255, 0.2)")
+        .attr("stroke", theme.grid)
         .attr("stroke-width", 1);
 
       const labelRadius = radius + 30;
@@ -86,7 +72,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
         .attr("y", labelY)
         .attr("text-anchor", "middle")
         .attr("dominant-baseline", "middle")
-        .attr("fill", "white")
+        .attr("fill", theme.text.primary)
         .attr("font-size", "12px")
         .attr("font-weight", "500")
         .text(factor.label);
@@ -103,9 +89,9 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
 
     reversedCounties.forEach((county, reverseIndex) => {
       const index = counties.length - 1 - reverseIndex;
-      const color = county.isPrimary ? COLORS[0] : COLORS[(index % (COLORS.length - 1)) + 1];
+      const color = county.isPrimary ? CHART_COLORS[0] : CHART_COLORS[(index % (CHART_COLORS.length - 1)) + 1];
 
-      const radarData = FACTORS.map((f) => ({
+      const radarData = RISK_FACTORS.map((f) => ({
         key: f.key,
         value: Number(county[f.key]) || 0,
       }));
@@ -134,7 +120,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
           .attr("cy", y)
           .attr("r", 4)
           .attr("fill", color.stroke)
-          .attr("stroke", "white")
+          .attr("stroke", theme.pointStroke)
           .attr("stroke-width", 1.5)
           .attr("opacity", 0)
           .transition()
@@ -147,9 +133,9 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
     // Add interactive overlay points (only for primary county)
     const primaryCounty = counties.find((c) => c.isPrimary) || counties[0];
     if (primaryCounty) {
-      const primaryData = FACTORS.map((f) => ({
+      const primaryData = RISK_FACTORS.map((f) => ({
         key: f.key,
-        label: FACTORS.find((fac) => fac.key === f.key)?.label || f.key,
+        label: RISK_FACTORS.find((fac) => fac.key === f.key)?.label || f.key,
         value: Number(primaryCounty[f.key]) || 0,
       }));
 
@@ -177,7 +163,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
           const tooltipData = counties.map((county, ci) => ({
             name: county.name.replace(" County", "").replace(" Parish", ""),
             value: county[d.key],
-            color: county.isPrimary ? COLORS[0].stroke : COLORS[(ci % (COLORS.length - 1)) + 1].stroke,
+            color: county.isPrimary ? CHART_COLORS[0].stroke : CHART_COLORS[(ci % (CHART_COLORS.length - 1)) + 1].stroke,
           }));
 
           const tooltipWidth = 140;
@@ -196,7 +182,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
             .attr("y", tooltipY - tooltipHeight / 2)
             .attr("width", tooltipWidth)
             .attr("height", tooltipHeight)
-            .attr("fill", "rgba(0, 0, 0, 0.9)")
+            .attr("fill", theme.tooltip.bg)
             .attr("rx", 6);
 
           g.append("text")
@@ -204,7 +190,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
             .attr("x", tooltipX)
             .attr("y", tooltipY - tooltipHeight / 2 + 16)
             .attr("text-anchor", "middle")
-            .attr("fill", "white")
+            .attr("fill", theme.tooltip.text)
             .attr("font-size", "11px")
             .attr("font-weight", "bold")
             .text(d.label);
@@ -221,7 +207,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
               .attr("class", "tooltip-text")
               .attr("x", tooltipX - tooltipWidth / 2 + 22)
               .attr("y", tooltipY - tooltipHeight / 2 + 36 + ti * 18)
-              .attr("fill", "rgba(255, 255, 255, 0.8)")
+              .attr("fill", theme.tooltip.textMuted)
               .attr("font-size", "10px")
               .text(`${td.name}: ${td.value}`);
           });
@@ -230,7 +216,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
           g.selectAll(".tooltip-bg, .tooltip-text").remove();
         });
     }
-  }, [counties, width, height]);
+  }, [counties, width, height, theme]);
 
   return (
     <svg
