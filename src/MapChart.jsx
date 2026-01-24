@@ -1,109 +1,352 @@
-import React from "react";
-import { useState, useEffect } from "react";
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  ZoomableGroup,
+} from "react-simple-maps";
 import { scaleQuantize } from "d3-scale";
+import { interpolateRdYlGn } from "d3-scale-chromatic";
 import { csv } from "d3-fetch";
-import RadarChart from "./RadarChart";
 import { AkHiStates, AkHiCounties } from "./AkHi";
 
+import D3RadarChart from "./D3RadarChart";
+import Legend from "./Legend";
+import Histogram from "./Histogram";
+import Statistics from "./Statistics";
+import Tooltip from "./Tooltip";
+import Search from "./Search";
+
 const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
-const statesGeoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"; // Add states GeoJSON URL
+const statesGeoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
+
+const RADAR_COLORS = [
+  "rgba(255, 99, 132, 1)",   // pink - primary
+  "rgba(54, 162, 235, 1)",   // blue
+  "rgba(255, 206, 86, 1)",   // yellow
+  "rgba(75, 192, 192, 1)",   // teal
+  "rgba(153, 102, 255, 1)",  // purple
+];
 
 const colorScale = scaleQuantize()
   .domain([1, 40])
-  .range([
-"#00441b", // Dark green
-"#006d2c",
-"#238b45",
-"#41ae76",
-"#66c2a4",
-"#e0f3db", // Light green
-"#ffeda0", // Light yellow
-"#fed976",
-"#feb24c",
-"#fd8d3c",
-"#fc4e2a",
-"#e31a1c",
-"#bd0026",
-"#800026",
-"#4d0019"  // Dark red
-  ]);
+  .range(
+    Array.from({ length: 15 }, (_, i) =>
+      interpolateRdYlGn(1 - i / 14)
+    )
+  );
 
 const MapChart = () => {
   const [data, setData] = useState([]);
   const [selectedCounty, setSelectedCounty] = useState(null);
+  const [hoveredCounty, setHoveredCounty] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState(null);
+  const [selectedRange, setSelectedRange] = useState(null);
+  const [comparisonCounties, setComparisonCounties] = useState([]);
+  const [zoom, setZoom] = useState(1);
+  const [center, setCenter] = useState([-96, 38]);
+  const mapRef = useRef(null);
 
   useEffect(() => {
-    csv("/climate.csv", (d) => {
-      return {
-        ...d,
-        heat: +d.heat,
-        wet_bulb: +d.wet_bulb,
-        farm_crop_yields: +d.farm_crop_yields,
-        sea_level_rise: +d.sea_level_rise,
-        wildfires: +d.wildfires,
-        economic_damages: +d.economic_damages,
-        total_risk: +d.total_risk
-      };
-    }).then(counties => {
+    csv("/climate.csv", (d) => ({
+      ...d,
+      heat: +d.heat,
+      wet_bulb: +d.wet_bulb,
+      farm_crop_yields: +d.farm_crop_yields,
+      sea_level_rise: +d.sea_level_rise,
+      wildfires: +d.wildfires,
+      economic_damages: +d.economic_damages,
+      total_risk: +d.total_risk,
+    })).then((counties) => {
       setData(counties);
     });
   }, []);
 
-  const handleCountyClick = (geo) => {
-    const countyData = data.find(s => s.id === geo.id);
-    setSelectedCounty(countyData);
+  const dataMap = useMemo(() => {
+    const map = new Map();
+    data.forEach((d) => map.set(d.id, d));
+    return map;
+  }, [data]);
+
+  const handleCountyClick = useCallback(
+    (geo, event) => {
+      const countyData = dataMap.get(geo.id);
+      if (countyData) {
+        if (event?.shiftKey) {
+          setComparisonCounties((prev) => {
+            const exists = prev.find((c) => c.id === countyData.id);
+            if (exists) {
+              return prev.filter((c) => c.id !== countyData.id);
+            }
+            if (prev.length >= 4) {
+              return [...prev.slice(1), countyData];
+            }
+            return [...prev, countyData];
+          });
+        } else {
+          setSelectedCounty(countyData);
+        }
+      }
+    },
+    [dataMap]
+  );
+
+  const handleCountyHover = useCallback(
+    (geo, event) => {
+      const countyData = dataMap.get(geo.id);
+      if (countyData) {
+        setHoveredCounty(countyData);
+        setTooltipPosition({ x: event.clientX, y: event.clientY });
+      }
+    },
+    [dataMap]
+  );
+
+  const handleCountyLeave = useCallback(() => {
+    setHoveredCounty(null);
+    setTooltipPosition(null);
+  }, []);
+
+  const handleZoomIn = () => {
+    setZoom((prev) => Math.min(prev * 1.5, 8));
   };
 
+  const handleZoomOut = () => {
+    setZoom((prev) => Math.max(prev / 1.5, 1));
+  };
+
+  const handleReset = () => {
+    setZoom(1);
+    setCenter([-96, 38]);
+  };
+
+  const handleMoveEnd = (position) => {
+    setCenter(position.coordinates);
+    setZoom(position.zoom);
+  };
+
+  const handleRangeSelect = useCallback((range) => {
+    setSelectedRange(range);
+  }, []);
+
+  const handleBinClick = useCallback((range) => {
+    setSelectedRange(range);
+  }, []);
+
+  const handleSearchSelect = useCallback((county) => {
+    setSelectedCounty(county);
+  }, []);
+
+  const clearComparison = useCallback(() => {
+    setComparisonCounties([]);
+  }, []);
+
+  const removeFromComparison = useCallback((county) => {
+    setComparisonCounties((prev) => prev.filter((c) => c.id !== county.id));
+  }, []);
+
+  const getCountyOpacity = (countyData) => {
+    if (!selectedRange) return 1;
+    if (!countyData) return 0.3;
+    if (
+      countyData.total_risk >= selectedRange[0] &&
+      countyData.total_risk <= selectedRange[1]
+    ) {
+      return 1;
+    }
+    return 0.15;
+  };
+
+  const getCountyStroke = (geo) => {
+    if (selectedCounty && selectedCounty.id === geo.id) {
+      return { color: "#fff", width: 2 };
+    }
+    if (comparisonCounties.find((c) => c.id === geo.id)) {
+      return { color: "#00bfff", width: 1.5 };
+    }
+    if (hoveredCounty && hoveredCounty.id === geo.id) {
+      return { color: "#fff", width: 1 };
+    }
+    return { color: "#000", width: 0.2 };
+  };
+
+  // Combine selected county with comparison counties for radar
+  const radarCounties = useMemo(() => {
+    const counties = [];
+    if (selectedCounty) {
+      counties.push({ ...selectedCounty, isPrimary: true });
+    }
+    comparisonCounties.forEach((c) => {
+      if (!selectedCounty || c.id !== selectedCounty.id) {
+        counties.push({ ...c, isPrimary: false });
+      }
+    });
+    return counties;
+  }, [selectedCounty, comparisonCounties]);
+
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <div style={{ flex: 15 }}>
-      <ComposableMap projection="geoAlbersUsa">
-        <Geographies geography={geoUrl}>
-          {({ geographies }) =>
-            geographies
-              .filter(geo => !AkHiCounties.includes(geo.id)) 
-              .map(geo => {
-              const cur = data.find(s => s.id === geo.id);
-              return (
-                <Geography
-                  key={geo.rsmKey}
-                  geography={geo}
-                  fill={colorScale(cur ? cur.total_risk: "#EEE")}
-                  stroke="#000"
-                  strokeWidth={0.2}
-                  onClick={() => handleCountyClick(geo)}
-                />
-              );
-            })
-          }
-        </Geographies>
-        <Geographies geography={statesGeoUrl}>
-          {({ geographies }) =>
-            geographies
-            .filter(geo => !AkHiStates.includes(geo.id)) 
-            .map(geo => (
-              <Geography
-                key={geo.rsmKey}
-                geography={geo}
-                fill="none"
-                stroke="#000"
-                strokeWidth={0.7} // Thicker border for states
+    <div className="app-layout">
+      <div className="main-content">
+        <div className="top-section">
+          <div className="map-section">
+            <div className="map-controls">
+              <Search data={data} onSelect={handleSearchSelect} colorScale={colorScale} />
+              <div className="zoom-controls">
+                <button onClick={handleZoomIn} title="Zoom In">+</button>
+                <button onClick={handleZoomOut} title="Zoom Out">-</button>
+                <button onClick={handleReset} title="Reset View">Reset</button>
+              </div>
+            </div>
+
+            <div className="map-wrapper" ref={mapRef}>
+              <ComposableMap projection="geoAlbersUsa">
+                <ZoomableGroup
+                  zoom={zoom}
+                  center={center}
+                  onMoveEnd={handleMoveEnd}
+                  minZoom={1}
+                  maxZoom={8}
+                >
+                  <Geographies geography={geoUrl}>
+                    {({ geographies }) =>
+                      geographies
+                        .filter((geo) => !AkHiCounties.includes(geo.id))
+                        .map((geo) => {
+                          const countyData = dataMap.get(geo.id);
+                          const stroke = getCountyStroke(geo);
+                          return (
+                            <Geography
+                              key={geo.rsmKey}
+                              geography={geo}
+                              fill={
+                                countyData
+                                  ? colorScale(countyData.total_risk)
+                                  : "#EEE"
+                              }
+                              stroke={stroke.color}
+                              strokeWidth={stroke.width / zoom}
+                              opacity={getCountyOpacity(countyData)}
+                              onClick={(e) => handleCountyClick(geo, e)}
+                              onMouseEnter={(e) => handleCountyHover(geo, e)}
+                              onMouseMove={(e) =>
+                                setTooltipPosition({ x: e.clientX, y: e.clientY })
+                              }
+                              onMouseLeave={handleCountyLeave}
+                              style={{
+                                default: { outline: "none", cursor: "pointer" },
+                                hover: { outline: "none", cursor: "pointer" },
+                                pressed: { outline: "none" },
+                              }}
+                            />
+                          );
+                        })
+                    }
+                  </Geographies>
+                  <Geographies geography={statesGeoUrl}>
+                    {({ geographies }) =>
+                      geographies
+                        .filter((geo) => !AkHiStates.includes(geo.id))
+                        .map((geo) => (
+                          <Geography
+                            key={geo.rsmKey}
+                            geography={geo}
+                            fill="none"
+                            stroke="#000"
+                            strokeWidth={0.7 / zoom}
+                            style={{
+                              default: { outline: "none", pointerEvents: "none" },
+                              hover: { outline: "none" },
+                              pressed: { outline: "none" },
+                            }}
+                          />
+                        ))
+                    }
+                  </Geographies>
+                </ZoomableGroup>
+              </ComposableMap>
+            </div>
+
+            <div className="map-footer">
+              <Legend
+                colorScale={colorScale}
+                width={400}
+                height={60}
+                title="Climate Risk Score"
+                onRangeSelect={handleRangeSelect}
+                selectedRange={selectedRange}
               />
-            ))
-          }
-        </Geographies>
-      </ComposableMap>
-      </div>
-      {selectedCounty && (
-        <div style= {{flex: 10, paddingLeft: '50px'}}>
-          <h2 style={{ fontSize: '2em' }}>{selectedCounty.name}</h2>
-            <h3 style={{ fontSize: '1.5em' }}>
-              Combined Risk: {selectedCounty.total_risk} / 60
-            </h3>
-          <RadarChart data={selectedCounty} />
+              {selectedRange && (
+                <button className="clear-filter-btn" onClick={() => setSelectedRange(null)}>
+                  Clear Filter
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="radar-section">
+            {radarCounties.length > 0 ? (
+              <>
+                <div className="radar-header">
+                  <h3>Risk Profile</h3>
+                  {comparisonCounties.length > 0 && (
+                    <button className="clear-btn" onClick={clearComparison}>
+                      Clear Comparison
+                    </button>
+                  )}
+                </div>
+                <D3RadarChart
+                  counties={radarCounties}
+                  width={400}
+                  height={400}
+                  onRemove={removeFromComparison}
+                />
+                <div className="radar-legend">
+                  {radarCounties.map((county, i) => (
+                    <div key={county.id} className="radar-legend-item">
+                      <span
+                        className="legend-color"
+                        style={{ backgroundColor: county.isPrimary ? RADAR_COLORS[0] : RADAR_COLORS[(i % (RADAR_COLORS.length - 1)) + 1] }}
+                      />
+                      <span className="legend-name">
+                        {county.name.replace(" County", "").replace(" Parish", "")}
+                      </span>
+                      <span className="legend-risk">({county.total_risk})</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="hint">Shift+Click counties to compare</p>
+              </>
+            ) : (
+              <div className="no-selection">
+                <p>Click on a county to view its risk profile</p>
+                <p className="hint">Shift+Click to add counties for comparison</p>
+              </div>
+            )}
+          </div>
         </div>
-      )}
+
+        <div className="bottom-section">
+          <div className="chart-panel">
+            <Statistics data={data} selectedCounty={selectedCounty} />
+          </div>
+
+          <div className="chart-panel histogram-panel">
+            <Histogram
+              data={data}
+              colorScale={colorScale}
+              selectedCounty={selectedCounty}
+              onBinClick={handleBinClick}
+            />
+          </div>
+
+        </div>
+      </div>
+
+      <Tooltip
+        data={hoveredCounty}
+        position={tooltipPosition}
+        colorScale={colorScale}
+      />
     </div>
   );
 };

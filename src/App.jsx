@@ -6,10 +6,8 @@ import './App.css'
 function App() {
   return (
     <>
-    <h1>Climate Risk Explorer</h1>
-      <div>
-        <MapChart />
-      </div>
+      <h1>Climate Risk Explorer</h1>
+      <MapChart />
     </>
   )
 }
