@@ -15,6 +15,7 @@ const Histogram = ({
   onBinClick,
   riskKey = 'total_risk',
   riskLabel = 'Risk',
+  domain = [1, 40],
 }) => {
   const containerRef = useRef(null);
   const svgRef = useRef(null);
@@ -66,18 +67,23 @@ const Histogram = ({
 
     // Extract risk values for selected type
     const riskValues = data.map((d) => d[riskKey]);
-    const [minRisk, maxRisk] = extent(riskValues);
+    const [minDomain, maxDomain] = domain;
+    const range = maxDomain - minDomain;
 
-    // Create bins
+    // Use fewer bins for smaller ranges (individual factors 1-10)
+    // More bins for larger ranges (total risk 1-40)
+    const numBins = range <= 10 ? range : 15;
+
+    // Create bins with fixed domain
     const histogram = bin()
-      .domain([minRisk, maxRisk])
-      .thresholds(15);
+      .domain([minDomain, maxDomain])
+      .thresholds(numBins);
 
     const bins = histogram(riskValues);
 
     // Scales
     const xScale = scaleLinear()
-      .domain([minRisk, maxRisk])
+      .domain([minDomain, maxDomain])
       .range([0, innerWidth]);
 
     const yScale = scaleLinear()
@@ -221,7 +227,7 @@ const Histogram = ({
         .duration(300)
         .attr("opacity", 0.9);
     }
-  }, [data, colorScale, dimensions, selectedCounty, onBinClick, theme, riskKey, riskLabel]);
+  }, [data, colorScale, dimensions, selectedCounty, onBinClick, theme, riskKey, riskLabel, domain]);
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: '200px' }}>
@@ -242,6 +248,7 @@ Histogram.propTypes = {
   onBinClick: PropTypes.func,
   riskKey: PropTypes.string,
   riskLabel: PropTypes.string,
+  domain: PropTypes.arrayOf(PropTypes.number),
 };
 
 const areEqual = (prevProps, nextProps) => {

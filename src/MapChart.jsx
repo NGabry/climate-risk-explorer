@@ -368,6 +368,7 @@ const MapChart = () => {
               onBinClick={handleBinClick}
               riskKey={selectedRiskType.key}
               riskLabel={selectedRiskType.label}
+              domain={selectedRiskType.domain}
             />
           </div>
 
