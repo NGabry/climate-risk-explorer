@@ -208,7 +208,7 @@ const MapChart = () => {
               <div className="zoom-controls">
                 <button onClick={handleZoomIn} title="Zoom In">+</button>
                 <button onClick={handleZoomOut} title="Zoom Out">-</button>
-                <button onClick={handleReset} title="Reset View">Reset</button>
+                <button onClick={handleReset} title="Reset Zoom View">Reset Zoom</button>
               </div>
             </div>
 
