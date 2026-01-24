@@ -12,11 +12,11 @@ Heat, Wet Bulb, Crop Yields, Sea Level Rise, Wildfire, Economic Damage
 
 React, Vite, D3.js
 
-## Development
+## Running Locally
 
 ```sh
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 ## License
