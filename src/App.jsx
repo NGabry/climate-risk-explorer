@@ -9,7 +9,7 @@ function App() {
       <header className="app-header">
         <div className="header-title">
           <h1>U.S. Climate Risk Explorer</h1>
-          <span className="header-subtitle">County-level climate projections for 2040–2060</span>
+          <span className="header-subtitle">County-level climate risk projections for 2040–2060</span>
         </div>
         <a
           href="https://github.com/NGabry/climate-risk-explorer"
