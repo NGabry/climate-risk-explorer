@@ -484,6 +484,7 @@ const MapChart = () => {
         data={hoveredCounty}
         position={tooltipPosition}
         colorScale={colorScale}
+        selectedRiskType={selectedRiskType}
       />
 
       <InfoModal

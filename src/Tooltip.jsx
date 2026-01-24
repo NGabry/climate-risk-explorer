@@ -1,8 +1,25 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const Tooltip = ({ data, position, colorScale }) => {
+const ALL_FACTORS = [
+  { key: 'total_risk', label: 'Total Risk' },
+  { key: 'heat', label: 'Heat' },
+  { key: 'wet_bulb', label: 'Wet Bulb' },
+  { key: 'farm_crop_yields', label: 'Crop Yields' },
+  { key: 'sea_level_rise', label: 'Sea Level' },
+  { key: 'wildfires', label: 'Wildfire' },
+  { key: 'economic_damages', label: 'Economic' },
+];
+
+const Tooltip = ({ data, position, colorScale, selectedRiskType }) => {
   if (!data || !position) return null;
+
+  const selectedKey = selectedRiskType?.key || 'total_risk';
+  const selectedLabel = selectedRiskType?.label || 'Total Risk';
+  const selectedValue = data[selectedKey];
+
+  // All factors except the selected one
+  const otherFactors = ALL_FACTORS.filter(f => f.key !== selectedKey);
 
   return (
     <div
@@ -22,36 +39,18 @@ const Tooltip = ({ data, position, colorScale }) => {
         <div className="tooltip-risk">
           <span
             className="risk-indicator"
-            style={{ backgroundColor: colorScale(data.total_risk) }}
+            style={{ backgroundColor: colorScale(selectedValue) }}
           />
-          <span className="risk-label">Total Risk:</span>
-          <span className="risk-value">{data.total_risk}</span>
+          <span className="risk-label">{selectedLabel}:</span>
+          <span className="risk-value">{selectedValue}</span>
         </div>
         <div className="tooltip-factors">
-          <div className="factor-row">
-            <span className="factor-label">Heat</span>
-            <span className="factor-value">{data.heat}</span>
-          </div>
-          <div className="factor-row">
-            <span className="factor-label">Wet Bulb</span>
-            <span className="factor-value">{data.wet_bulb}</span>
-          </div>
-          <div className="factor-row">
-            <span className="factor-label">Crop Yields</span>
-            <span className="factor-value">{data.farm_crop_yields}</span>
-          </div>
-          <div className="factor-row">
-            <span className="factor-label">Sea Level</span>
-            <span className="factor-value">{data.sea_level_rise}</span>
-          </div>
-          <div className="factor-row">
-            <span className="factor-label">Wildfire</span>
-            <span className="factor-value">{data.wildfires}</span>
-          </div>
-          <div className="factor-row">
-            <span className="factor-label">Economic</span>
-            <span className="factor-value">{data.economic_damages}</span>
-          </div>
+          {otherFactors.map(factor => (
+            <div className="factor-row" key={factor.key}>
+              <span className="factor-label">{factor.label}</span>
+              <span className="factor-value">{data[factor.key]}</span>
+            </div>
+          ))}
         </div>
       </div>
       <div className="tooltip-footer">Click to select</div>
@@ -75,6 +74,10 @@ Tooltip.propTypes = {
     y: PropTypes.number.isRequired,
   }),
   colorScale: PropTypes.func.isRequired,
+  selectedRiskType: PropTypes.shape({
+    key: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+  }),
 };
 
 export default Tooltip;
