@@ -29,7 +29,7 @@ const MapChart = () => {
   const [selectedRiskType, setSelectedRiskType] = useState(RISK_TYPES[0]);
   const [hoveredCounty, setHoveredCounty] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState(null);
-  const [selectedRange, setSelectedRange] = useState(null);
+  const [selectedRanges, setSelectedRanges] = useState(null); // Array of [min, max] ranges, or null
   const [comparisonCounties, setComparisonCounties] = useState([]);
   const [zoom, setZoom] = useState(MAP_CONFIG.defaultZoom);
   const [center, setCenter] = useState(MAP_CONFIG.defaultCenter);
@@ -164,17 +164,56 @@ const MapChart = () => {
     setZoom(position.zoom);
   };
 
-  const handleRangeSelect = useCallback((range) => {
-    setSelectedRange(range);
-  }, []);
+  // Helper to check if a range is already selected
+  const isRangeSelected = useCallback((range) => {
+    if (!selectedRanges) return false;
+    const EPSILON = 0.0001;
+    return selectedRanges.some(r =>
+      Math.abs(r[0] - range[0]) < EPSILON && Math.abs(r[1] - range[1]) < EPSILON
+    );
+  }, [selectedRanges]);
 
-  const handleBinClick = useCallback((range) => {
-    setSelectedRange(range);
-  }, []);
+  const handleRangeSelect = useCallback((range, { shiftKey = false, metaKey = false, ctrlKey = false } = {}) => {
+    const cmdOrCtrl = metaKey || ctrlKey;
+
+    if (range === null) {
+      setSelectedRanges(null);
+    } else if (cmdOrCtrl && selectedRanges) {
+      // Cmd/Ctrl+click: toggle individual range (non-contiguous selection)
+      if (isRangeSelected(range)) {
+        // Remove this range
+        const newRanges = selectedRanges.filter(r =>
+          !(Math.abs(r[0] - range[0]) < 0.0001 && Math.abs(r[1] - range[1]) < 0.0001)
+        );
+        setSelectedRanges(newRanges.length > 0 ? newRanges : null);
+      } else {
+        // Add this range
+        setSelectedRanges([...selectedRanges, range]);
+      }
+    } else if (shiftKey && selectedRanges && selectedRanges.length > 0) {
+      // Shift+click: expand to create contiguous range from first selection to clicked
+      const firstRange = selectedRanges[0];
+      setSelectedRanges([[
+        Math.min(firstRange[0], range[0]),
+        Math.max(firstRange[1], range[1])
+      ]]);
+    } else if (cmdOrCtrl) {
+      // Cmd/Ctrl+click with no existing selection: start new selection
+      setSelectedRanges([range]);
+    } else {
+      // Regular click: replace selection
+      setSelectedRanges([range]);
+    }
+  }, [selectedRanges, isRangeSelected]);
+
+  const handleBinClick = useCallback((range, { shiftKey = false, metaKey = false, ctrlKey = false } = {}) => {
+    // Delegate to handleRangeSelect with same logic
+    handleRangeSelect(range, { shiftKey, metaKey, ctrlKey });
+  }, [handleRangeSelect]);
 
   const handleRiskTypeChange = useCallback((type) => {
     setSelectedRiskType(type);
-    setSelectedRange(null);
+    setSelectedRanges(null);
   }, []);
 
   const handleSearchSelect = useCallback((county) => {
@@ -205,15 +244,17 @@ const MapChart = () => {
   }, []);
 
   const getCountyOpacity = (countyData) => {
-    if (!selectedRange) return 1;
+    if (!selectedRanges || selectedRanges.length === 0) return 1;
     if (!countyData) return 0.3;
     const value = countyData[selectedRiskType.key];
+    // Check if value falls in ANY of the selected ranges
     // Use half-open interval [min, max) - left-inclusive, right-exclusive
     // Exception: include the domain maximum in the last bin
-    const isLastBin = selectedRange[1] === selectedRiskType.domain[1];
-    const isInRange = value >= selectedRange[0] &&
-      (isLastBin ? value <= selectedRange[1] : value < selectedRange[1]);
-    return isInRange ? 1 : 0.15;
+    const isInAnyRange = selectedRanges.some(range => {
+      const isLastBin = range[1] === selectedRiskType.domain[1];
+      return value >= range[0] && (isLastBin ? value <= range[1] : value < range[1]);
+    });
+    return isInAnyRange ? 1 : 0.15;
   };
 
   const getCountyStroke = (geo) => {
@@ -361,10 +402,10 @@ const MapChart = () => {
                 height={60}
                 title={`${selectedRiskType.label} Score`}
                 onRangeSelect={handleRangeSelect}
-                selectedRange={selectedRange}
+                selectedRanges={selectedRanges}
               />
-              {selectedRange && (
-                <button className="clear-filter-btn" onClick={() => setSelectedRange(null)}>
+              {selectedRanges && selectedRanges.length > 0 && (
+                <button className="clear-filter-btn" onClick={() => setSelectedRanges(null)}>
                   Clear Filter
                 </button>
               )}
@@ -429,7 +470,7 @@ const MapChart = () => {
               colorScale={colorScale}
               selectedCounty={selectedCounty}
               onBinClick={handleBinClick}
-              selectedRange={selectedRange}
+              selectedRanges={selectedRanges}
               riskKey={selectedRiskType.key}
               riskLabel={selectedRiskType.label}
               domain={selectedRiskType.domain}

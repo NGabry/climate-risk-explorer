@@ -14,7 +14,7 @@ const Legend = ({
   height = 50,
   title = "Risk Level",
   onRangeSelect,
-  selectedRange,
+  selectedRanges,
 }) => {
   const svgRef = useRef(null);
   const theme = useTheme();
@@ -68,15 +68,23 @@ const Legend = ({
     // Create scale to position segments proportionally
     const xScale = scaleLinear().domain(domain).range([0, barWidth]);
 
-    // Helper for tolerance-based comparison
-    const rangesMatch = (r1, r2) => {
-      if (!r1 || !r2) return false;
-      return Math.abs(r1[0] - r2[0]) < EPSILON && Math.abs(r1[1] - r2[1]) < EPSILON;
+    // Helper to check if a segment exactly matches a specific range
+    const segmentMatchesRange = (d, range) => {
+      return Math.abs(d.min - range[0]) < EPSILON && Math.abs(d.max - range[1]) < EPSILON;
     };
 
+    // Helper to check if segment is selected (falls within any selected range)
     const isSegmentSelected = (d) => {
-      if (!selectedRange) return false;
-      return d.min >= selectedRange[0] - EPSILON && d.max <= selectedRange[1] + EPSILON;
+      if (!selectedRanges || selectedRanges.length === 0) return false;
+      return selectedRanges.some(range =>
+        d.min >= range[0] - EPSILON && d.max <= range[1] + EPSILON
+      );
+    };
+
+    // Helper to check if segment exactly matches any selected range (for toggle)
+    const isSegmentExactMatch = (d) => {
+      if (!selectedRanges || selectedRanges.length === 0) return false;
+      return selectedRanges.some(range => segmentMatchesRange(d, range));
     };
 
     // Draw color segments
@@ -97,15 +105,21 @@ const Legend = ({
       .attr("stroke", (d) => isSegmentSelected(d) ? theme.stroke : "none")
       .attr("stroke-width", 2)
       .attr("opacity", (d) => {
-        if (!selectedRange) return 1;
+        if (!selectedRanges || selectedRanges.length === 0) return 1;
         return isSegmentSelected(d) ? 1 : 0.3;
       })
       .on("click", function (event, d) {
         if (onRangeSelect) {
-          if (rangesMatch(selectedRange, [d.min, d.max])) {
+          const modifiers = {
+            shiftKey: event.shiftKey,
+            metaKey: event.metaKey,
+            ctrlKey: event.ctrlKey
+          };
+          // Only toggle off on plain click if exact match
+          if (!event.shiftKey && !event.metaKey && !event.ctrlKey && isSegmentExactMatch(d)) {
             onRangeSelect(null);
           } else {
-            onRangeSelect([d.min, d.max]);
+            onRangeSelect([d.min, d.max], modifiers);
           }
         }
       })
@@ -149,7 +163,7 @@ const Legend = ({
       .attr("fill", theme.text.subtle)
       .attr("font-size", "9px")
       .text("High Risk");
-  }, [colorScale, bins, width, height, title, onRangeSelect, selectedRange, theme]);
+  }, [colorScale, bins, width, height, title, onRangeSelect, selectedRanges, theme]);
 
   return (
     <svg
@@ -168,7 +182,7 @@ Legend.propTypes = {
   height: PropTypes.number,
   title: PropTypes.string,
   onRangeSelect: PropTypes.func,
-  selectedRange: PropTypes.arrayOf(PropTypes.number),
+  selectedRanges: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)),
 };
 
 export default Legend;
