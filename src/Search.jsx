@@ -18,10 +18,14 @@ const Search = ({ data, cities, onSelect, onCitySelect, colorScale }) => {
       .map((d) => ({ ...d, type: 'county' }))
       .slice(0, 6);
 
-    // Search cities (exclude AK/HI - no climate data)
+    // Search cities (exclude AK/HI - no climate data, deduplicate by city+state)
+    const seenCities = new Set();
     const cityResults = (cities || [])
       .filter((c) => {
         if (c.state === 'AK' || c.state === 'HI') return false;
+        const key = `${c.city}-${c.state}`;
+        if (seenCities.has(key)) return false;
+        seenCities.add(key);
         const cityState = `${c.city}, ${c.state}`.toLowerCase();
         const cityOnly = c.city.toLowerCase();
         return cityState.includes(lowerQuery) || cityOnly.includes(lowerQuery);
