@@ -144,7 +144,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
         .enter()
         .append("circle")
         .attr("class", "radar-point-overlay")
-        .attr("r", 15)
+        .attr("r", 20)
         .attr("fill", "transparent")
         .attr("cursor", "pointer")
         .attr("cx", (d, i) => {
@@ -156,9 +156,6 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
           return Math.sin(angle) * rScale(d.value);
         })
         .on("mouseenter", function (event, d) {
-          const i = primaryData.findIndex((pd) => pd.key === d.key);
-          const angle = angleSlice * i - Math.PI / 2;
-
           // Show all county values for this factor
           const tooltipData = counties.map((county, ci) => ({
             name: county.name.replace(" County", "").replace(" Parish", ""),
@@ -166,50 +163,57 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
             color: county.isPrimary ? CHART_COLORS[0].stroke : CHART_COLORS[(ci % (CHART_COLORS.length - 1)) + 1].stroke,
           }));
 
-          const tooltipWidth = 140;
-          const tooltipHeight = 20 + tooltipData.length * 18;
-          let tooltipX = Math.cos(angle) * (rScale(d.value) + 20);
-          let tooltipY = Math.sin(angle) * (rScale(d.value) + 20);
+          const tooltipWidth = 160;
+          const tooltipHeight = 26 + tooltipData.length * 22;
+
+          // Get mouse position relative to the SVG, then convert to g coordinates
+          const svgRect = svgRef.current.getBoundingClientRect();
+          let tooltipX = event.clientX - svgRect.left - centerX + 15;
+          let tooltipY = event.clientY - svgRect.top - centerY - tooltipHeight / 2;
 
           // Adjust position to stay within bounds
-          if (tooltipX < -centerX + tooltipWidth / 2) tooltipX = -centerX + tooltipWidth / 2 + 10;
-          if (tooltipX > centerX - tooltipWidth / 2) tooltipX = centerX - tooltipWidth / 2 - 10;
-          if (tooltipY < -centerY + tooltipHeight / 2) tooltipY = -centerY + tooltipHeight / 2 + 10;
+          if (tooltipX + tooltipWidth > centerX) tooltipX = tooltipX - tooltipWidth - 30;
+          if (tooltipY < -centerY) tooltipY = -centerY + 10;
+          if (tooltipY + tooltipHeight > centerY) tooltipY = centerY - tooltipHeight - 10;
 
           g.append("rect")
             .attr("class", "tooltip-bg")
-            .attr("x", tooltipX - tooltipWidth / 2)
-            .attr("y", tooltipY - tooltipHeight / 2)
+            .attr("x", tooltipX)
+            .attr("y", tooltipY)
             .attr("width", tooltipWidth)
             .attr("height", tooltipHeight)
             .attr("fill", theme.tooltip.bg)
-            .attr("rx", 6);
+            .attr("rx", 6)
+            .style("pointer-events", "none");
 
           g.append("text")
             .attr("class", "tooltip-text")
-            .attr("x", tooltipX)
-            .attr("y", tooltipY - tooltipHeight / 2 + 16)
+            .attr("x", tooltipX + tooltipWidth / 2)
+            .attr("y", tooltipY + 18)
             .attr("text-anchor", "middle")
             .attr("fill", theme.tooltip.text)
-            .attr("font-size", "11px")
+            .attr("font-size", "13px")
             .attr("font-weight", "bold")
-            .text(d.label);
+            .text(d.label)
+            .style("pointer-events", "none");
 
           tooltipData.forEach((td, ti) => {
             g.append("circle")
               .attr("class", "tooltip-text")
-              .attr("cx", tooltipX - tooltipWidth / 2 + 12)
-              .attr("cy", tooltipY - tooltipHeight / 2 + 32 + ti * 18)
-              .attr("r", 4)
-              .attr("fill", td.color);
+              .attr("cx", tooltipX + 14)
+              .attr("cy", tooltipY + 38 + ti * 22)
+              .attr("r", 5)
+              .attr("fill", td.color)
+              .style("pointer-events", "none");
 
             g.append("text")
               .attr("class", "tooltip-text")
-              .attr("x", tooltipX - tooltipWidth / 2 + 22)
-              .attr("y", tooltipY - tooltipHeight / 2 + 36 + ti * 18)
+              .attr("x", tooltipX + 26)
+              .attr("y", tooltipY + 42 + ti * 22)
               .attr("fill", theme.tooltip.textMuted)
-              .attr("font-size", "10px")
-              .text(`${td.name}: ${td.value}`);
+              .attr("font-size", "12px")
+              .text(`${td.name}: ${td.value}`)
+              .style("pointer-events", "none");
           });
         })
         .on("mouseleave", function () {
