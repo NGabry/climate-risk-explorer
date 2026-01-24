@@ -1,3 +1,14 @@
+// Risk types for tab selection
+export const RISK_TYPES = [
+  { key: 'total_risk', label: 'Total Risk', domain: [1, 40] },
+  { key: 'heat', label: 'Heat', domain: [1, 10] },
+  { key: 'wet_bulb', label: 'Wet Bulb', domain: [1, 10] },
+  { key: 'farm_crop_yields', label: 'Crop Yields', domain: [1, 10] },
+  { key: 'sea_level_rise', label: 'Sea Level', domain: [1, 10] },
+  { key: 'wildfires', label: 'Wildfire', domain: [1, 10] },
+  { key: 'economic_damages', label: 'Economic', domain: [1, 10] },
+];
+
 // Comparison/radar chart colors
 export const CHART_COLORS = [
   { name: 'pink', fill: 'rgba(255, 99, 132, 0.25)', stroke: 'rgba(255, 99, 132, 1)' },

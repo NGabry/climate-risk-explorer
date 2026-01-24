@@ -13,6 +13,8 @@ const Histogram = ({
   colorScale,
   selectedCounty,
   onBinClick,
+  riskKey = 'total_risk',
+  riskLabel = 'Risk',
 }) => {
   const containerRef = useRef(null);
   const svgRef = useRef(null);
@@ -60,10 +62,10 @@ const Histogram = ({
       .attr("fill", theme.text.primary)
       .attr("font-size", "16px")
       .attr("font-weight", "600")
-      .text("Risk Distribution");
+      .text(`${riskLabel} Distribution`);
 
-    // Extract total_risk values
-    const riskValues = data.map((d) => d.total_risk);
+    // Extract risk values for selected type
+    const riskValues = data.map((d) => d[riskKey]);
     const [minRisk, maxRisk] = extent(riskValues);
 
     // Create bins
@@ -111,7 +113,7 @@ const Histogram = ({
       .attr("text-anchor", "middle")
       .attr("fill", theme.text.subtle)
       .attr("font-size", "13px")
-      .text("Total Risk Score");
+      .text(`${riskLabel} Score`);
 
     // Y axis label
     g.append("text")
@@ -194,7 +196,7 @@ const Histogram = ({
 
     // Highlight selected county's bin
     if (selectedCounty) {
-      const xPos = xScale(selectedCounty.total_risk);
+      const xPos = xScale(selectedCounty[riskKey]);
 
       // Vertical line
       g.append("line")
@@ -219,7 +221,7 @@ const Histogram = ({
         .duration(300)
         .attr("opacity", 0.9);
     }
-  }, [data, colorScale, dimensions, selectedCounty, onBinClick, theme]);
+  }, [data, colorScale, dimensions, selectedCounty, onBinClick, theme, riskKey, riskLabel]);
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: '200px' }}>
@@ -234,18 +236,19 @@ const Histogram = ({
 };
 
 Histogram.propTypes = {
-  data: PropTypes.arrayOf(
-    PropTypes.shape({
-      total_risk: PropTypes.number.isRequired,
-    })
-  ).isRequired,
+  data: PropTypes.arrayOf(PropTypes.object).isRequired,
   colorScale: PropTypes.func.isRequired,
   selectedCounty: PropTypes.object,
   onBinClick: PropTypes.func,
+  riskKey: PropTypes.string,
+  riskLabel: PropTypes.string,
 };
 
 const areEqual = (prevProps, nextProps) => {
   if (prevProps.data.length !== nextProps.data.length) {
+    return false;
+  }
+  if (prevProps.riskKey !== nextProps.riskKey) {
     return false;
   }
   const prevId = prevProps.selectedCounty?.id;

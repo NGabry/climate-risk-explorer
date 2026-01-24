@@ -18,19 +18,12 @@ import Histogram from "./Histogram";
 import Statistics from "./Statistics";
 import Tooltip from "./Tooltip";
 import Search from "./Search";
-import { CHART_COLORS, MAP_CONFIG, MAP_COLORS } from "./constants";
-
-const colorScale = scaleQuantize()
-  .domain([1, 40])
-  .range(
-    Array.from({ length: 15 }, (_, i) =>
-      interpolateRdYlGn(1 - i / 14)
-    )
-  );
+import { CHART_COLORS, MAP_CONFIG, MAP_COLORS, RISK_TYPES } from "./constants";
 
 const MapChart = () => {
   const [data, setData] = useState([]);
   const [selectedCounty, setSelectedCounty] = useState(null);
+  const [selectedRiskType, setSelectedRiskType] = useState(RISK_TYPES[0]);
   const [hoveredCounty, setHoveredCounty] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState(null);
   const [selectedRange, setSelectedRange] = useState(null);
@@ -75,6 +68,13 @@ const MapChart = () => {
     data.forEach((d) => map.set(d.id, d));
     return map;
   }, [data]);
+
+  const colorScale = useMemo(() =>
+    scaleQuantize()
+      .domain(selectedRiskType.domain)
+      .range(Array.from({ length: 15 }, (_, i) => interpolateRdYlGn(1 - i / 14))),
+    [selectedRiskType]
+  );
 
   const handleCountyClick = useCallback(
     (geo, event) => {
@@ -163,8 +163,8 @@ const MapChart = () => {
     if (!selectedRange) return 1;
     if (!countyData) return 0.3;
     if (
-      countyData.total_risk >= selectedRange[0] &&
-      countyData.total_risk <= selectedRange[1]
+      countyData[selectedRiskType.key] >= selectedRange[0] &&
+      countyData[selectedRiskType.key] <= selectedRange[1]
     ) {
       return 1;
     }
@@ -203,6 +203,17 @@ const MapChart = () => {
       <div className="main-content">
         <div className="top-section">
           <div className="map-section">
+            <div className="risk-tabs">
+              {RISK_TYPES.map((type) => (
+                <button
+                  key={type.key}
+                  className={`risk-tab ${selectedRiskType.key === type.key ? 'active' : ''}`}
+                  onClick={() => setSelectedRiskType(type)}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
             <div className="map-controls">
               <Search data={data} onSelect={handleSearchSelect} colorScale={colorScale} />
               <div className="zoom-controls">
@@ -234,7 +245,7 @@ const MapChart = () => {
                               geography={geo}
                               fill={
                                 countyData
-                                  ? colorScale(countyData.total_risk)
+                                  ? colorScale(countyData[selectedRiskType.key])
                                   : "#EEE"
                               }
                               stroke={stroke.color}
@@ -285,7 +296,7 @@ const MapChart = () => {
                 colorScale={colorScale}
                 width={800}
                 height={60}
-                title="Climate Risk Score"
+                title={`${selectedRiskType.label} Score`}
                 onRangeSelect={handleRangeSelect}
                 selectedRange={selectedRange}
               />
@@ -341,7 +352,12 @@ const MapChart = () => {
 
         <div className="bottom-section">
           <div className="chart-panel">
-            <Statistics data={data} selectedCounty={selectedCounty} />
+            <Statistics
+              data={data}
+              selectedCounty={selectedCounty}
+              riskKey={selectedRiskType.key}
+              riskLabel={selectedRiskType.label}
+            />
           </div>
 
           <div className="chart-panel histogram-panel">
@@ -350,6 +366,8 @@ const MapChart = () => {
               colorScale={colorScale}
               selectedCounty={selectedCounty}
               onBinClick={handleBinClick}
+              riskKey={selectedRiskType.key}
+              riskLabel={selectedRiskType.label}
             />
           </div>
 

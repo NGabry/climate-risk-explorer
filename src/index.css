@@ -227,6 +227,36 @@ svg {
   max-height: calc(100vh - 100px);
 }
 
+/* Risk Factor Tabs */
+.risk-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.risk-tab {
+  padding: 6px 12px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.risk-tab:hover {
+  background: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.risk-tab.active {
+  background: var(--accent-info);
+  color: white;
+  border-color: var(--accent-info);
+}
+
 /* Map Controls */
 .map-controls {
   display: flex;
