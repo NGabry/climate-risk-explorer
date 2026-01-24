@@ -81,6 +81,7 @@ body {
   overflow: hidden;
 }
 
+
 svg {
   display: inline-block;
   vertical-align: middle;
@@ -666,7 +667,6 @@ svg {
 
 /* Sidebar Panels */
 .selected-county-panel,
-.stats-panel,
 .comparison-panel {
   background: var(--bg-glass);
   backdrop-filter: blur(var(--blur-glass));
