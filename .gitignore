@@ -29,3 +29,4 @@ data/
 # Claude
 .claude/
 .playwright-mcp
+.vercel
