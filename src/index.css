@@ -86,6 +86,65 @@ svg {
   vertical-align: middle;
 }
 
+/* App Header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5em;
+  color: var(--text-primary);
+}
+
+.header-subtitle {
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.github-link {
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.github-link:hover {
+  color: var(--text-primary);
+}
+
+/* App Footer */
+.app-footer {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.app-footer a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.app-footer a:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+.footer-divider {
+  margin: 0 8px;
+  color: var(--text-subtle);
+}
+
 /* Main Layout */
 .app-layout {
   padding: 0 20px 20px;

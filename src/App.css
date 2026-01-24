@@ -3,11 +3,3 @@
   margin: 0 auto;
   text-align: left;
 }
-
-h1 {
-  text-align: center;
-  margin: 20px 0;
-  font-size: 1.8em;
-  font-weight: 600;
-  color: var(--text-primary);
-}

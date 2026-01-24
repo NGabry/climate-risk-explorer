@@ -1,6 +1,8 @@
-# Climate Risk Explorer
+# U.S. Climate Risk Explorer
 
-Interactive visualization of U.S. county-level climate risk projections for 2040-2060, based on [this PNAS paper](https://www.pnas.org/doi/10.1073/pnas.1910114117).
+**Live:** [us-climate-risk.vercel.app](https://us-climate-risk.vercel.app)
+
+Interactive visualization of U.S. county-level climate risk projections for 2040–2060, based on data from [ProPublica / Rhodium Group](https://projects.propublica.org/climate-migration/).
 
 ![Demo Page](public/demo_page.png)
 
