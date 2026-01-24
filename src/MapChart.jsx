@@ -203,17 +203,6 @@ const MapChart = () => {
       <div className="main-content">
         <div className="top-section">
           <div className="map-section">
-            <div className="risk-tabs">
-              {RISK_TYPES.map((type) => (
-                <button
-                  key={type.key}
-                  className={`risk-tab ${selectedRiskType.key === type.key ? 'active' : ''}`}
-                  onClick={() => setSelectedRiskType(type)}
-                >
-                  {type.label}
-                </button>
-              ))}
-            </div>
             <div className="map-controls">
               <Search data={data} onSelect={handleSearchSelect} colorScale={colorScale} />
               <div className="zoom-controls">
@@ -224,6 +213,17 @@ const MapChart = () => {
             </div>
 
             <div className="map-wrapper" ref={mapRef}>
+              <div className="risk-tabs">
+                {RISK_TYPES.map((type) => (
+                  <button
+                    key={type.key}
+                    className={`risk-tab ${selectedRiskType.key === type.key ? 'active' : ''}`}
+                    onClick={() => setSelectedRiskType(type)}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
               <ComposableMap projection="geoAlbersUsa">
                 <ZoomableGroup
                   zoom={zoom}
