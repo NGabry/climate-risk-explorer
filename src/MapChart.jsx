@@ -20,6 +20,7 @@ import Histogram from "./Histogram";
 import Statistics from "./Statistics";
 import Tooltip from "./Tooltip";
 import Search from "./Search";
+import InfoModal from "./InfoModal";
 import { CHART_COLORS, MAP_CONFIG, MAP_COLORS, RISK_TYPES } from "./constants";
 
 const MapChart = () => {
@@ -35,6 +36,7 @@ const MapChart = () => {
   const [countyCentroids, setCountyCentroids] = useState(new Map());
   const [cities, setCities] = useState([]);
   const [cityMarker, setCityMarker] = useState(null);
+  const [infoModalType, setInfoModalType] = useState(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -266,6 +268,15 @@ const MapChart = () => {
                     {type.label}
                   </button>
                 ))}
+                <button
+                  className="info-icon-btn"
+                  onClick={() => setInfoModalType(true)}
+                  title="About Risk Factors"
+                >
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                  </svg>
+                </button>
               </div>
               <ComposableMap projection="geoAlbersUsa">
                 <ZoomableGroup
@@ -432,6 +443,11 @@ const MapChart = () => {
         data={hoveredCounty}
         position={tooltipPosition}
         colorScale={colorScale}
+      />
+
+      <InfoModal
+        isOpen={infoModalType !== null}
+        onClose={() => setInfoModalType(null)}
       />
     </div>
   );

@@ -318,6 +318,134 @@ svg {
   border-color: var(--accent-info);
 }
 
+.info-icon-btn {
+  background: none;
+  border: none;
+  padding: 2px;
+  margin-left: 4px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-icon-btn:hover {
+  opacity: 1;
+}
+
+.info-icon-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--text-secondary);
+}
+
+.info-icon-btn:hover svg {
+  fill: var(--text-primary);
+}
+
+/* Info Modal */
+.info-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.info-modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.info-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.info-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.info-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.info-modal-close:hover {
+  color: var(--text-primary);
+}
+
+.info-modal-content {
+  padding: 20px;
+}
+
+.info-modal-content p {
+  margin: 0;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.info-modal-intro {
+  margin-bottom: 20px !important;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.info-modal-intro a {
+  color: var(--accent-info);
+  text-decoration: none;
+}
+
+.info-modal-intro a:hover {
+  text-decoration: underline;
+}
+
+.info-modal-factor {
+  margin-bottom: 16px;
+}
+
+.info-modal-factor:last-child {
+  margin-bottom: 0;
+}
+
+.info-modal-factor h4 {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.info-modal-factor p {
+  margin: 0;
+  font-size: 13px;
+}
+
 /* Map Controls */
 .map-controls {
   display: flex;
