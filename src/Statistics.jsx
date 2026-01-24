@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
-import { mean, median, deviation, min, max, quantile } from "d3-array";
+import { mean, median } from "d3-array";
 import { format } from "d3-format";
 
 const Statistics = ({ data, selectedCounty, riskKey = 'total_risk', riskLabel = 'Risk' }) => {
@@ -9,17 +9,11 @@ const Statistics = ({ data, selectedCounty, riskKey = 'total_risk', riskLabel = 
 
     const riskValues = data.map((d) => d[riskKey]);
     const formatNum = format(".1f");
-    const formatInt = format("d");
 
     return {
       count: data.length,
       mean: formatNum(mean(riskValues)),
       median: formatNum(median(riskValues)),
-      stdDev: formatNum(deviation(riskValues)),
-      min: formatInt(min(riskValues)),
-      max: formatInt(max(riskValues)),
-      q25: formatNum(quantile(riskValues.sort((a, b) => a - b), 0.25)),
-      q75: formatNum(quantile(riskValues.sort((a, b) => a - b), 0.75)),
     };
   }, [data, riskKey]);
 
@@ -51,22 +45,6 @@ const Statistics = ({ data, selectedCounty, riskKey = 'total_risk', riskLabel = 
         <div className="stat-item">
           <span className="stat-label">Median {riskLabel}</span>
           <span className="stat-value">{stats.median}</span>
-        </div>
-        <div className="stat-item">
-          <span className="stat-label">Std Dev</span>
-          <span className="stat-value">{stats.stdDev}</span>
-        </div>
-        <div className="stat-item">
-          <span className="stat-label">Range</span>
-          <span className="stat-value">
-            {stats.min} - {stats.max}
-          </span>
-        </div>
-        <div className="stat-item">
-          <span className="stat-label">IQR</span>
-          <span className="stat-value">
-            {stats.q25} - {stats.q75}
-          </span>
         </div>
       </div>
 

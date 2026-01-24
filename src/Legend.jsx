@@ -25,8 +25,8 @@ const Legend = ({
     const svg = select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const margin = { top: 20, right: 10, bottom: 25, left: 10 };
-    const barHeight = 15;
+    const margin = { top: 14, right: 10, bottom: 18, left: 10 };
+    const barHeight = 10;
     const barWidth = width - margin.left - margin.right;
 
     const g = svg
@@ -36,10 +36,10 @@ const Legend = ({
     // Title
     g.append("text")
       .attr("x", barWidth / 2)
-      .attr("y", -8)
+      .attr("y", -5)
       .attr("text-anchor", "middle")
       .attr("fill", theme.text.primary)
-      .attr("font-size", "18px")
+      .attr("font-size", "11px")
       .attr("font-weight", "600")
       .text(title);
 
@@ -140,28 +140,28 @@ const Legend = ({
     tickValues.forEach((tick) => {
       g.append("text")
         .attr("x", xScale(tick))
-        .attr("y", barHeight + 16)
+        .attr("y", barHeight + 10)
         .attr("text-anchor", "middle")
         .attr("fill", theme.text.secondary)
-        .attr("font-size", "12px")
+        .attr("font-size", "9px")
         .text(Math.round(tick));
     });
 
     // Add labels
     g.append("text")
-      .attr("x", -30)
-      .attr("y", barHeight + 35)
+      .attr("x", -15)
+      .attr("y", barHeight + 22)
       .attr("text-anchor", "start")
       .attr("fill", theme.text.muted)
-      .attr("font-size", "16px")
+      .attr("font-size", "9px")
       .text("Low Risk");
 
     g.append("text")
-      .attr("x", barWidth + 35)
-      .attr("y", barHeight + 35)
+      .attr("x", barWidth + 20)
+      .attr("y", barHeight + 22)
       .attr("text-anchor", "end")
       .attr("fill", theme.text.muted)
-      .attr("font-size", "16px")
+      .attr("font-size", "9px")
       .text("High Risk");
   }, [colorScale, bins, width, height, title, onRangeSelect, selectedRanges, theme]);
 

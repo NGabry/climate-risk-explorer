@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { select } from "d3-selection";
 import { scaleLinear } from "d3-scale";
@@ -7,15 +7,34 @@ import "d3-transition";
 import { useTheme } from "./hooks/useTheme";
 import { CHART_COLORS, RISK_FACTORS } from "./constants";
 
-const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
+const D3RadarChart = ({ counties }) => {
+  const containerRef = useRef(null);
   const svgRef = useRef(null);
+  const [dimensions, setDimensions] = useState({ width: 280, height: 280 });
   const theme = useTheme();
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        const size = Math.min(width, height);
+        setDimensions({ width: size, height: size });
+      }
+    });
+
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!counties || counties.length === 0 || !svgRef.current) return;
 
+    const { width, height } = dimensions;
     const svg = select(svgRef.current);
-    const margin = 70;
+    const margin = 45;
     const radius = Math.min(width, height) / 2 - margin;
     const centerX = width / 2;
     const centerY = height / 2;
@@ -63,7 +82,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
         .attr("stroke", theme.grid)
         .attr("stroke-width", 1);
 
-      const labelRadius = radius + 30;
+      const labelRadius = radius + 22;
       const labelX = Math.cos(angle) * labelRadius;
       const labelY = Math.sin(angle) * labelRadius;
 
@@ -73,7 +92,7 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
         .attr("text-anchor", "middle")
         .attr("dominant-baseline", "middle")
         .attr("fill", theme.text.primary)
-        .attr("font-size", "12px")
+        .attr("font-size", "10px")
         .attr("font-weight", "500")
         .text(factor.label);
     });
@@ -118,10 +137,10 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
         g.append("circle")
           .attr("cx", x)
           .attr("cy", y)
-          .attr("r", 4)
+          .attr("r", 3)
           .attr("fill", color.stroke)
           .attr("stroke", theme.pointStroke)
-          .attr("stroke-width", 1.5)
+          .attr("stroke-width", 1)
           .attr("opacity", 0)
           .transition()
           .duration(400)
@@ -220,15 +239,17 @@ const D3RadarChart = ({ counties, width = 400, height = 400 }) => {
           g.selectAll(".tooltip-bg, .tooltip-text").remove();
         });
     }
-  }, [counties, width, height, theme]);
+  }, [counties, dimensions, theme]);
 
   return (
-    <svg
-      ref={svgRef}
-      width={width}
-      height={height}
-      style={{ overflow: "visible" }}
-    />
+    <div ref={containerRef} style={{ width: '100%', flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg
+        ref={svgRef}
+        width={dimensions.width}
+        height={dimensions.height}
+        style={{ overflow: "visible" }}
+      />
+    </div>
   );
 };
 
@@ -244,15 +265,10 @@ D3RadarChart.propTypes = {
       isPrimary: PropTypes.bool,
     })
   ).isRequired,
-  width: PropTypes.number,
-  height: PropTypes.number,
   onRemove: PropTypes.func,
 };
 
 const areEqual = (prevProps, nextProps) => {
-  if (prevProps.width !== nextProps.width || prevProps.height !== nextProps.height) {
-    return false;
-  }
   if (prevProps.counties.length !== nextProps.counties.length) {
     return false;
   }

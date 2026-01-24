@@ -47,7 +47,7 @@ const Histogram = ({
     const svg = select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const margin = { top: 35, right: 25, bottom: 50, left: 55 };
+    const margin = { top: 26, right: 20, bottom: 38, left: 45 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -61,10 +61,10 @@ const Histogram = ({
     svg
       .append("text")
       .attr("x", width / 2)
-      .attr("y", 22)
+      .attr("y", 16)
       .attr("text-anchor", "middle")
       .attr("fill", theme.text.primary)
-      .attr("font-size", "16px")
+      .attr("font-size", "13px")
       .attr("font-weight", "600")
       .text(`${riskLabel} Distribution`);
 
@@ -103,7 +103,7 @@ const Histogram = ({
       .attr("color", theme.axis)
       .selectAll("text")
       .attr("fill", theme.text.secondary)
-      .attr("font-size", "12px");
+      .attr("font-size", "11px");
 
     // Y axis
     const yAxis = axisLeft(yScale).ticks(5).tickFormat(format("d"));
@@ -113,25 +113,25 @@ const Histogram = ({
       .attr("color", theme.axis)
       .selectAll("text")
       .attr("fill", theme.text.secondary)
-      .attr("font-size", "12px");
+      .attr("font-size", "11px");
 
     // X axis label
     g.append("text")
       .attr("x", innerWidth / 2)
-      .attr("y", innerHeight + 40)
+      .attr("y", innerHeight + 30)
       .attr("text-anchor", "middle")
       .attr("fill", theme.text.subtle)
-      .attr("font-size", "13px")
+      .attr("font-size", "11px")
       .text(`${riskLabel} Score`);
 
     // Y axis label
     g.append("text")
       .attr("transform", "rotate(-90)")
       .attr("x", -innerHeight / 2)
-      .attr("y", -40)
+      .attr("y", -32)
       .attr("text-anchor", "middle")
       .attr("fill", theme.text.subtle)
-      .attr("font-size", "13px")
+      .attr("font-size", "11px")
       .text("Counties");
 
     // Draw bars
@@ -278,7 +278,7 @@ const Histogram = ({
   }, [data, colorScale, dimensions, selectedCounty, onBinClick, selectedRanges, theme, riskKey, riskLabel, domain]);
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: '200px' }}>
+    <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: 0 }}>
       <svg
         ref={svgRef}
         width={dimensions.width}
