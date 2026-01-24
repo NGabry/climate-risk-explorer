@@ -73,7 +73,7 @@ const Statistics = ({ data, selectedCounty }) => {
       {selectedCounty && countyPercentile && (
         <div className="selected-stats">
           <div className="selected-county-name">
-            {selectedCounty.name.replace(" County", "").replace(" Parish", "")}, {selectedCounty.state}
+            {selectedCounty.name}
           </div>
           <div className="percentile-container">
             <span className="percentile-label">National Percentile</span>
