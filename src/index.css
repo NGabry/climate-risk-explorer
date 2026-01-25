@@ -1683,8 +1683,8 @@ svg {
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Mobile Panel (generic glass panel for mobile) */
@@ -1879,10 +1879,7 @@ svg {
 
 /* Compact histogram for mobile */
 .mobile-stats-view .histogram-panel {
-  flex: 1;
-  min-height: 150px;
-  max-height: 200px;
-  overflow: hidden;
+  min-height: 200px;
 }
 
 .mobile-stats-view .stats-panel {
