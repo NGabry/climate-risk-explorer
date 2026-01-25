@@ -1583,6 +1583,48 @@ svg {
   transform: scale(0.95);
 }
 
+/* Compare Mode Toggle Button */
+.mobile-compare-toggle {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(30, 40, 50, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-compare-toggle:active {
+  transform: scale(0.95);
+}
+
+.mobile-compare-toggle.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.4);
+}
+
+.mobile-compare-toggle.active svg {
+  stroke: white;
+}
+
+.mobile-compare-toggle.active.at-limit {
+  background: var(--accent-danger);
+  border-color: var(--accent-danger);
+  box-shadow: 0 4px 16px rgba(255, 99, 132, 0.4);
+}
+
 /* Mobile Legend */
 .mobile-legend {
   flex-shrink: 0;
@@ -1689,12 +1731,16 @@ svg {
 
 .mobile-radar-panel .radar-legend {
   margin-top: 8px;
-  gap: 4px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px 12px;
 }
 
 .mobile-radar-panel .radar-legend-item {
-  font-size: 0.7em;
-  gap: 6px;
+  font-size: 0.65em;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .mobile-radar-panel .legend-color {
@@ -1705,6 +1751,7 @@ svg {
 .mobile-radar-panel .hint {
   margin-top: 6px;
   font-size: 0.65em;
+  width: 100%;
 }
 
 /* Compact empty state for mobile */

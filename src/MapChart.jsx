@@ -122,10 +122,12 @@ const MapChart = () => {
           setComparisonCounties((prev) => {
             const exists = prev.find((c) => c.id === countyData.id);
             if (exists) {
+              // Remove if already in comparison
               return prev.filter((c) => c.id !== countyData.id);
             }
-            if (prev.length >= 4) {
-              return [...prev.slice(1), countyData];
+            // Hard cap at 8 (9 total with primary)
+            if (prev.length >= 8) {
+              return prev; // Don't add more
             }
             return [...prev, countyData];
           });

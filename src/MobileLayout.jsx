@@ -58,41 +58,7 @@ const MobileLayout = ({
   setInfoModalType,
 }) => {
   const [activeTab, setActiveTab] = useState('map'); // 'map' | 'stats' | 'compare'
-  const longPressTimer = useRef(null);
-  const longPressTriggered = useRef(false);
-
-  // Long press handlers for comparison selection
-  const handleTouchStart = useCallback((geo) => {
-    longPressTriggered.current = false;
-    longPressTimer.current = setTimeout(() => {
-      longPressTriggered.current = true;
-      // Trigger comparison add (same as shift+click)
-      handleCountyClick(geo, { shiftKey: true });
-      // Haptic feedback if available
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
-    }, 500); // 500ms for long press
-  }, [handleCountyClick]);
-
-  const handleTouchEnd = useCallback((geo) => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-    // If long press wasn't triggered, do normal click
-    if (!longPressTriggered.current) {
-      handleCountyClick(geo, {});
-    }
-  }, [handleCountyClick]);
-
-  const handleTouchMove = useCallback(() => {
-    // Cancel long press if user moves finger
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  }, []);
+  const [compareMode, setCompareMode] = useState(false); // Toggle for comparison mode on mobile
 
   return (
     <div className="mobile-layout">
@@ -185,12 +151,11 @@ const MobileLayout = ({
                               stroke={stroke.color}
                               strokeWidth={stroke.width / zoom}
                               opacity={getCountyOpacity(countyData)}
-                              onTouchStart={() => handleTouchStart(geo)}
-                              onTouchEnd={() => handleTouchEnd(geo)}
-                              onTouchMove={handleTouchMove}
                               onClick={(e) => {
-                                // Only handle click on non-touch devices
-                                if (!('ontouchstart' in window)) {
+                                // If compare mode is on, add to comparison
+                                if (compareMode) {
+                                  handleCountyClick(geo, { shiftKey: true });
+                                } else {
                                   handleCountyClick(geo, e);
                                 }
                               }}
@@ -241,6 +206,29 @@ const MobileLayout = ({
                 <button onClick={handleZoomOut} title="Zoom Out">−</button>
                 <button onClick={handleReset} title="Reset">⟲</button>
               </div>
+
+              {/* Compare Mode Toggle */}
+              <button
+                className={`mobile-compare-toggle ${compareMode ? 'active' : ''} ${comparisonCounties.length >= 8 ? 'at-limit' : ''}`}
+                onClick={() => {
+                  if (compareMode) {
+                    // Turning off compare mode - clear selections
+                    clearComparison();
+                  }
+                  setCompareMode(!compareMode);
+                }}
+                title={compareMode ? "Exit compare mode" : "Enter compare mode"}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <ellipse cx="8" cy="12" rx="6" ry="7"/>
+                  <ellipse cx="16" cy="12" rx="6" ry="7"/>
+                </svg>
+                <span>
+                  {compareMode
+                    ? `Compare: ${comparisonCounties.length}/8`
+                    : 'Compare'}
+                </span>
+              </button>
             </div>
 
             {/* Legend */}
@@ -348,7 +336,7 @@ const MobileLayout = ({
                   </svg>
                   <h3>No Counties Selected</h3>
                   <p>Tap a county on the map to see its risk profile</p>
-                  <p className="hint">Press and hold a county to add it for comparison</p>
+                  <p className="hint">Use the Compare button on the map to add multiple counties</p>
                 </div>
               )}
             </div>
