@@ -21,6 +21,11 @@ bun install
 bun run dev
 ```
 
-## License
+## Deployments
 
-MIT
+auto-deploys on pushes to main
+
+Otherwise run:
+```sh
+bunx vercel --prod
+```
