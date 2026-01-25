@@ -1,3 +1,25 @@
+// Application configuration constants
+export const MOBILE_BREAKPOINT = 480;
+export const COMPARISON_LIMIT = 8;
+export const SEARCH_MIN_CHARS = 2;
+export const SEARCH_MAX_RESULTS = 10;
+export const DEFAULT_COUNTY_ID = '26125'; // Oakland County, MI
+
+// Zoom levels for map navigation
+export const ZOOM_LEVELS = {
+  min: 1,
+  default: 1,
+  max: 20,
+  step: 1.5,
+  selection: 10,
+};
+
+// Animation durations in ms
+export const ANIMATION = {
+  duration: 400,
+  stagger: 100,
+};
+
 // Risk types for tab selection
 // Descriptions based on ProPublica/Rhodium Group climate migration study methodology
 export const RISK_TYPES = [

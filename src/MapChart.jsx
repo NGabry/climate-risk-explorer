@@ -1,147 +1,90 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import {
-  ComposableMap,
-  Geographies,
-  Geography,
-  ZoomableGroup,
-  Marker,
-} from "react-simple-maps";
-import { scaleQuantize } from "d3-scale";
-import { interpolateRdYlGn } from "d3-scale-chromatic";
-import { csv, json } from "d3-fetch";
-import { bin } from "d3-array";
-import { geoCentroid, geoContains } from "d3-geo";
-import { feature } from "topojson-client";
-import { AkHiStates, AkHiCounties } from "./AkHi";
+import React, { useState, useCallback, useRef } from "react";
 
-import D3RadarChart from "./D3RadarChart";
-import Legend from "./Legend";
+// Components
+import MapContainer from "./components/MapContainer";
+import RiskTabs from "./components/RiskTabs";
+import RadarPanel from "./components/RadarPanel";
+import ZoomControls from "./components/ZoomControls";
+import LegendWithClear from "./components/LegendWithClear";
+import SocialLinks from "./components/SocialLinks";
 import Histogram from "./Histogram";
 import Statistics from "./Statistics";
 import Tooltip from "./Tooltip";
 import Search from "./Search";
 import InfoModal from "./InfoModal";
 import MobileLayout from "./MobileLayout";
+
+// Hooks
 import { useIsMobile } from "./hooks/useIsMobile";
-import { CHART_COLORS, MAP_CONFIG, MAP_COLORS, RISK_TYPES } from "./constants";
+import { useMapData, useColorScale, useHistogramBins } from "./hooks/useMapData";
+import { useMapState } from "./hooks/useMapState";
+import { useSelectionState } from "./hooks/useSelectionState";
+
+// Constants
+import { MAP_COLORS, MOBILE_BREAKPOINT } from "./constants";
 
 const MapChart = () => {
-  const isMobile = useIsMobile(480);
-  const [data, setData] = useState([]);
-  const [selectedCounty, setSelectedCounty] = useState(null);
-  const [selectedRiskType, setSelectedRiskType] = useState(RISK_TYPES[0]);
+  const isMobile = useIsMobile(MOBILE_BREAKPOINT);
+
+  // Tooltip state (desktop only)
   const [hoveredCounty, setHoveredCounty] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState(null);
-  const [selectedRanges, setSelectedRanges] = useState(null); // Array of [min, max] ranges, or null
-  const [comparisonCounties, setComparisonCounties] = useState([]);
-  const [zoom, setZoom] = useState(MAP_CONFIG.defaultZoom);
-  const [center, setCenter] = useState(MAP_CONFIG.defaultCenter);
-  const [countyCentroids, setCountyCentroids] = useState(new Map());
-  const [countyFeatures, setCountyFeatures] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [cityMarker, setCityMarker] = useState(null);
   const [infoModalType, setInfoModalType] = useState(null);
   const mapRef = useRef(null);
 
-  useEffect(() => {
-    csv("/climate.csv", (d) => ({
-      ...d,
-      heat: +d.heat,
-      wet_bulb: +d.wet_bulb,
-      farm_crop_yields: +d.farm_crop_yields,
-      sea_level_rise: +d.sea_level_rise,
-      wildfires: +d.wildfires,
-      economic_damages: +d.economic_damages,
-      total_risk: +d.total_risk,
-    })).then((counties) => {
-      setData(counties);
-      // Auto-select Oakland County, MI on startup
-      const oakland = counties.find(c => c.name === "Oakland County, MI");
-      if (oakland) {
-        setSelectedCounty(oakland);
-      }
-    });
-  }, []);
+  // Map viewport state
+  const {
+    zoom,
+    center,
+    handleZoomIn,
+    handleZoomOut,
+    handleReset,
+    handleMoveEnd,
+    zoomToLocation,
+  } = useMapState();
 
-  // Load county centroids and features for zoom-to-county and city-to-county lookup
-  useEffect(() => {
-    json(MAP_CONFIG.geoUrl).then((topology) => {
-      const counties = feature(topology, topology.objects.counties);
-      const centroids = new Map();
-      counties.features.forEach((f) => {
-        const centroid = geoCentroid(f);
-        if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
-          centroids.set(f.id, centroid);
-        }
-      });
-      setCountyCentroids(centroids);
-      setCountyFeatures(counties.features);
-    });
-  }, []);
+  // Data fetching and processing
+  const {
+    data,
+    cities,
+    dataMap,
+    countyCentroids,
+    countyFeatures,
+    defaultCounty,
+  } = useMapData();
 
-  // Load cities for search
-  useEffect(() => {
-    json("/cities.json").then((citiesData) => {
-      setCities(citiesData);
-    });
-  }, []);
+  // Selection state
+  const {
+    selectedCounty,
+    comparisonCounties,
+    selectedRiskType,
+    selectedRanges,
+    setSelectedRanges,
+    cityMarker,
+    setCityMarker,
+    radarCounties,
+    handleCountyClick,
+    handleSearchSelect,
+    handleCitySelect,
+    handleRiskTypeChange,
+    handleRangeSelect,
+    handleBinClick,
+    clearComparison,
+    removeFromComparison,
+    getCountyOpacity,
+  } = useSelectionState({
+    dataMap,
+    countyCentroids,
+    countyFeatures,
+    defaultCounty,
+    zoomToLocation,
+  });
 
-  const dataMap = useMemo(() => {
-    const map = new Map();
-    data.forEach((d) => map.set(d.id, d));
-    return map;
-  }, [data]);
+  // Compute color scale and histogram based on selected risk type
+  const colorScale = useColorScale(selectedRiskType);
+  const histogramBins = useHistogramBins(data, selectedRiskType);
 
-  const colorScale = useMemo(() =>
-    scaleQuantize()
-      .domain(selectedRiskType.domain)
-      .range(Array.from({ length: 15 }, (_, i) => interpolateRdYlGn(1 - i / 14))),
-    [selectedRiskType]
-  );
-
-  // Calculate histogram bins to share between Legend and Histogram
-  // This ensures both components use identical boundaries for selection sync
-  const histogramBins = useMemo(() => {
-    if (!data || data.length === 0) return [];
-
-    const riskValues = data.map((d) => d[selectedRiskType.key]);
-    const [minDomain, maxDomain] = selectedRiskType.domain;
-    const rangeSize = maxDomain - minDomain;
-    const numBins = rangeSize <= 10 ? rangeSize : 15;
-
-    const histogram = bin()
-      .domain([minDomain, maxDomain])
-      .thresholds(numBins);
-
-    return histogram(riskValues);
-  }, [data, selectedRiskType]);
-
-  const handleCountyClick = useCallback(
-    (geo, event) => {
-      const countyData = dataMap.get(geo.id);
-      if (countyData) {
-        if (event?.shiftKey) {
-          setComparisonCounties((prev) => {
-            const exists = prev.find((c) => c.id === countyData.id);
-            if (exists) {
-              // Remove if already in comparison
-              return prev.filter((c) => c.id !== countyData.id);
-            }
-            // Hard cap at 8 (9 total with primary)
-            if (prev.length >= 8) {
-              return prev; // Don't add more
-            }
-            return [...prev, countyData];
-          });
-        } else {
-          setSelectedCounty(countyData);
-          setCityMarker(null); // Clear city marker when county selected
-        }
-      }
-    },
-    [dataMap]
-  );
-
+  // Hover handlers for tooltip (desktop only)
   const handleCountyHover = useCallback(
     (geo, event) => {
       const countyData = dataMap.get(geo.id);
@@ -158,128 +101,8 @@ const MapChart = () => {
     setTooltipPosition(null);
   }, []);
 
-  const handleZoomIn = () => {
-    setZoom((prev) => Math.min(prev * 1.5, MAP_CONFIG.maxZoom));
-  };
-
-  const handleZoomOut = () => {
-    setZoom((prev) => Math.max(prev / 1.5, MAP_CONFIG.defaultZoom));
-  };
-
-  const handleReset = () => {
-    setZoom(MAP_CONFIG.defaultZoom);
-    setCenter(MAP_CONFIG.defaultCenter);
-  };
-
-  const handleMoveEnd = (position) => {
-    setCenter(position.coordinates);
-    setZoom(position.zoom);
-  };
-
-  // Helper to check if a range is already selected
-  const isRangeSelected = useCallback((range) => {
-    if (!selectedRanges) return false;
-    const EPSILON = 0.0001;
-    return selectedRanges.some(r =>
-      Math.abs(r[0] - range[0]) < EPSILON && Math.abs(r[1] - range[1]) < EPSILON
-    );
-  }, [selectedRanges]);
-
-  const handleRangeSelect = useCallback((range, { shiftKey = false, metaKey = false, ctrlKey = false } = {}) => {
-    const cmdOrCtrl = metaKey || ctrlKey;
-
-    if (range === null) {
-      setSelectedRanges(null);
-    } else if (cmdOrCtrl && selectedRanges) {
-      // Cmd/Ctrl+click: toggle individual range (non-contiguous selection)
-      if (isRangeSelected(range)) {
-        // Remove this range
-        const newRanges = selectedRanges.filter(r =>
-          !(Math.abs(r[0] - range[0]) < 0.0001 && Math.abs(r[1] - range[1]) < 0.0001)
-        );
-        setSelectedRanges(newRanges.length > 0 ? newRanges : null);
-      } else {
-        // Add this range
-        setSelectedRanges([...selectedRanges, range]);
-      }
-    } else if (shiftKey && selectedRanges && selectedRanges.length > 0) {
-      // Shift+click: expand to create contiguous range from first selection to clicked
-      const firstRange = selectedRanges[0];
-      setSelectedRanges([[
-        Math.min(firstRange[0], range[0]),
-        Math.max(firstRange[1], range[1])
-      ]]);
-    } else if (cmdOrCtrl) {
-      // Cmd/Ctrl+click with no existing selection: start new selection
-      setSelectedRanges([range]);
-    } else {
-      // Regular click: replace selection
-      setSelectedRanges([range]);
-    }
-  }, [selectedRanges, isRangeSelected]);
-
-  const handleBinClick = useCallback((range, { shiftKey = false, metaKey = false, ctrlKey = false } = {}) => {
-    // Delegate to handleRangeSelect with same logic
-    handleRangeSelect(range, { shiftKey, metaKey, ctrlKey });
-  }, [handleRangeSelect]);
-
-  const handleRiskTypeChange = useCallback((type) => {
-    setSelectedRiskType(type);
-    setSelectedRanges(null);
-  }, []);
-
-  const handleSearchSelect = useCallback((county) => {
-    setSelectedCounty(county);
-    setCityMarker(null); // Clear any city marker
-    // Zoom to the county if we have its centroid
-    const centroid = countyCentroids.get(county.id);
-    if (centroid) {
-      setCenter(centroid);
-      setZoom(MAP_CONFIG.selectionZoom);
-    }
-  }, [countyCentroids]);
-
-  const handleCitySelect = useCallback((city) => {
-    // Zoom to the city coordinates
-    setCenter([city.lng, city.lat]);
-    setZoom(MAP_CONFIG.selectionZoom);
-    // Show marker at city location
-    setCityMarker({ lat: city.lat, lng: city.lng, name: city.name });
-
-    // Find and select the county containing this city
-    const cityPoint = [city.lng, city.lat];
-    const containingFeature = countyFeatures.find(f => geoContains(f, cityPoint));
-    if (containingFeature) {
-      const countyData = dataMap.get(containingFeature.id);
-      if (countyData) {
-        setSelectedCounty(countyData);
-      }
-    }
-  }, [countyFeatures, dataMap]);
-
-  const clearComparison = useCallback(() => {
-    setComparisonCounties([]);
-  }, []);
-
-  const removeFromComparison = useCallback((county) => {
-    setComparisonCounties((prev) => prev.filter((c) => c.id !== county.id));
-  }, []);
-
-  const getCountyOpacity = (countyData) => {
-    if (!selectedRanges || selectedRanges.length === 0) return 1;
-    if (!countyData) return 0.3;
-    const value = countyData[selectedRiskType.key];
-    // Check if value falls in ANY of the selected ranges
-    // Use half-open interval [min, max) - left-inclusive, right-exclusive
-    // Exception: include the domain maximum in the last bin
-    const isInAnyRange = selectedRanges.some(range => {
-      const isLastBin = range[1] === selectedRiskType.domain[1];
-      return value >= range[0] && (isLastBin ? value <= range[1] : value < range[1]);
-    });
-    return isInAnyRange ? 1 : 0.15;
-  };
-
-  const getCountyStroke = (geo) => {
+  // Get county stroke styling
+  const getCountyStroke = useCallback((geo) => {
     if (selectedCounty && selectedCounty.id === geo.id) {
       return { color: MAP_COLORS.selection, width: 3 };
     }
@@ -290,21 +113,7 @@ const MapChart = () => {
       return { color: MAP_COLORS.selection, width: 1.5 };
     }
     return { color: MAP_COLORS.defaultStroke, width: 0.2 };
-  };
-
-  // Combine selected county with comparison counties for radar
-  const radarCounties = useMemo(() => {
-    const counties = [];
-    if (selectedCounty) {
-      counties.push({ ...selectedCounty, isPrimary: true });
-    }
-    comparisonCounties.forEach((c) => {
-      if (!selectedCounty || c.id !== selectedCounty.id) {
-        counties.push({ ...c, isPrimary: false });
-      }
-    });
-    return counties;
-  }, [selectedCounty, comparisonCounties]);
+  }, [selectedCounty, comparisonCounties, hoveredCounty]);
 
   // Render mobile layout
   if (isMobile) {
@@ -351,7 +160,13 @@ const MapChart = () => {
         <div className="top-section">
           <div className="map-section">
             <div className="map-controls">
-              <Search data={data} cities={cities} onSelect={handleSearchSelect} onCitySelect={handleCitySelect} colorScale={colorScale} />
+              <Search
+                data={data}
+                cities={cities}
+                onSelect={handleSearchSelect}
+                onCitySelect={handleCitySelect}
+                colorScale={colorScale}
+              />
               <div className="header-title">
                 <h1>U.S. Climate Risk Explorer</h1>
                 <span className="header-subtitle">County-level climate risk projections for 2040–2060</span>
@@ -361,186 +176,61 @@ const MapChart = () => {
             <div className="map-wrapper" ref={mapRef}>
               <div className="risk-tabs">
                 <div className="tabs-left">
-                  {RISK_TYPES.map((type) => (
-                    <button
-                      key={type.key}
-                      className={`risk-tab ${selectedRiskType.key === type.key ? 'active' : ''}`}
-                      onClick={() => handleRiskTypeChange(type)}
-                    >
-                      {type.label}
-                    </button>
-                  ))}
-                  <button
-                    className="info-icon-btn"
-                    onClick={() => setInfoModalType(true)}
-                    title="About Risk Factors"
-                  >
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                    </svg>
-                  </button>
+                  <RiskTabs
+                    selectedRiskType={selectedRiskType}
+                    onRiskTypeChange={handleRiskTypeChange}
+                    showInfoButton={true}
+                    onInfoClick={() => setInfoModalType(true)}
+                  />
                 </div>
-                <div className="zoom-controls">
-                  <button onClick={handleZoomIn} title="Zoom In">+</button>
-                  <button onClick={handleZoomOut} title="Zoom Out">−</button>
-                  <button onClick={handleReset} title="Reset View">Reset</button>
-                </div>
-              </div>
-              <ComposableMap projection="geoAlbersUsa" className="map-svg">
-                <ZoomableGroup
-                  zoom={zoom}
-                  center={center}
-                  onMoveEnd={handleMoveEnd}
-                  minZoom={MAP_CONFIG.defaultZoom}
-                  maxZoom={MAP_CONFIG.maxZoom}
-                >
-                  <Geographies geography={MAP_CONFIG.geoUrl}>
-                    {({ geographies }) =>
-                      geographies
-                        .filter((geo) => !AkHiCounties.includes(geo.id))
-                        .map((geo) => {
-                          const countyData = dataMap.get(geo.id);
-                          const stroke = getCountyStroke(geo);
-                          return (
-                            <Geography
-                              key={geo.rsmKey}
-                              geography={geo}
-                              fill={
-                                countyData
-                                  ? colorScale(countyData[selectedRiskType.key])
-                                  : "#EEE"
-                              }
-                              stroke={stroke.color}
-                              strokeWidth={stroke.width / zoom}
-                              opacity={getCountyOpacity(countyData)}
-                              onClick={(e) => handleCountyClick(geo, e)}
-                              onMouseEnter={(e) => handleCountyHover(geo, e)}
-                              onMouseMove={(e) =>
-                                setTooltipPosition({ x: e.clientX, y: e.clientY })
-                              }
-                              onMouseLeave={handleCountyLeave}
-                              style={{
-                                default: { outline: "none", cursor: "pointer" },
-                                hover: { outline: "none", cursor: "pointer" },
-                                pressed: { outline: "none" },
-                              }}
-                            />
-                          );
-                        })
-                    }
-                  </Geographies>
-                  <Geographies geography={MAP_CONFIG.statesGeoUrl}>
-                    {({ geographies }) =>
-                      geographies
-                        .filter((geo) => !AkHiStates.includes(geo.id))
-                        .map((geo) => (
-                          <Geography
-                            key={geo.rsmKey}
-                            geography={geo}
-                            fill="none"
-                            stroke="#000"
-                            strokeWidth={0.7 / zoom}
-                            style={{
-                              default: { outline: "none", pointerEvents: "none" },
-                              hover: { outline: "none" },
-                              pressed: { outline: "none" },
-                            }}
-                          />
-                        ))
-                    }
-                  </Geographies>
-                  {cityMarker && (
-                    <Marker coordinates={[cityMarker.lng, cityMarker.lat]}>
-                      <g className="city-marker" onClick={() => setCityMarker(null)}>
-                        <circle r={8 / zoom} className="city-marker-pulse" />
-                        <circle r={0.05 / zoom} className="city-marker-dot" />
-                      </g>
-                    </Marker>
-                  )}
-                </ZoomableGroup>
-              </ComposableMap>
-              <div className="map-legend-footer">
-                <Legend
-                  colorScale={colorScale}
-                  bins={histogramBins}
-                  width={500}
-                  height={45}
-                  title={`${selectedRiskType.label} Score`}
-                  onRangeSelect={handleRangeSelect}
-                  selectedRanges={selectedRanges}
+                <ZoomControls
+                  onZoomIn={handleZoomIn}
+                  onZoomOut={handleZoomOut}
+                  onReset={handleReset}
                 />
-                {selectedRanges && selectedRanges.length > 0 && (
-                  <button className="clear-filter-btn" onClick={() => setSelectedRanges(null)}>
-                    Clear Filter
-                  </button>
-                )}
               </div>
+
+              <MapContainer
+                zoom={zoom}
+                center={center}
+                onMoveEnd={handleMoveEnd}
+                dataMap={dataMap}
+                colorScale={colorScale}
+                selectedRiskType={selectedRiskType}
+                selectedCounty={selectedCounty}
+                comparisonCounties={comparisonCounties}
+                hoveredCounty={hoveredCounty}
+                cityMarker={cityMarker}
+                onCountyClick={handleCountyClick}
+                onCountyHover={handleCountyHover}
+                onCountyLeave={handleCountyLeave}
+                onCityMarkerClear={() => setCityMarker(null)}
+                getCountyOpacity={getCountyOpacity}
+              />
+
+              <LegendWithClear
+                colorScale={colorScale}
+                bins={histogramBins}
+                width={500}
+                height={45}
+                title={`${selectedRiskType.label} Score`}
+                selectedRanges={selectedRanges}
+                onRangeSelect={handleRangeSelect}
+                onClear={() => setSelectedRanges(null)}
+              />
             </div>
           </div>
 
           <div className="sidebar-section">
-            <div className="social-links">
-              <a
-                href="https://github.com/NGabry/climate-risk-explorer"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="social-link"
-                title="GitHub"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-                </svg>
-              </a>
-              <span className="social-divider">|</span>
-              <a
-                href="https://www.linkedin.com/in/ngabry/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="social-link"
-                title="LinkedIn"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                </svg>
-              </a>
-            </div>
+            <SocialLinks />
             <div className="radar-section">
-            {radarCounties.length > 0 ? (
-              <>
-                <div className="radar-header">
-                  <h3>Risk Profile</h3>
-                  {comparisonCounties.length > 0 && (
-                    <button className="clear-btn" onClick={clearComparison}>
-                      Clear Comparison
-                    </button>
-                  )}
-                </div>
-                <D3RadarChart
-                  counties={radarCounties}
-                  onRemove={removeFromComparison}
-                />
-                <div className="radar-legend">
-                  {radarCounties.map((county, i) => (
-                    <div key={county.id} className="radar-legend-item">
-                      <span
-                        className="legend-color"
-                        style={{ backgroundColor: county.isPrimary ? CHART_COLORS[0].stroke : CHART_COLORS[(i % (CHART_COLORS.length - 1)) + 1].stroke }}
-                      />
-                      <span className="legend-name">
-                        {county.name}
-                      </span>
-                      <span className="legend-risk">({county.total_risk})</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="hint">Shift+Click counties to compare</p>
-              </>
-            ) : (
-              <div className="no-selection">
-                <p>Click on a county to view its risk profile</p>
-                <p className="hint">Shift+Click to add counties for comparison</p>
-              </div>
-            )}
+              <RadarPanel
+                radarCounties={radarCounties}
+                comparisonCounties={comparisonCounties}
+                onClear={clearComparison}
+                onRemove={removeFromComparison}
+                emptyStateHint="Shift+Click counties to compare"
+              />
             </div>
           </div>
         </div>
