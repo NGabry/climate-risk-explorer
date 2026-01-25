@@ -10,7 +10,7 @@ import { scaleQuantize } from "d3-scale";
 import { interpolateRdYlGn } from "d3-scale-chromatic";
 import { csv, json } from "d3-fetch";
 import { bin } from "d3-array";
-import { geoCentroid } from "d3-geo";
+import { geoCentroid, geoContains } from "d3-geo";
 import { feature } from "topojson-client";
 import { AkHiStates, AkHiCounties } from "./AkHi";
 
@@ -37,6 +37,7 @@ const MapChart = () => {
   const [zoom, setZoom] = useState(MAP_CONFIG.defaultZoom);
   const [center, setCenter] = useState(MAP_CONFIG.defaultCenter);
   const [countyCentroids, setCountyCentroids] = useState(new Map());
+  const [countyFeatures, setCountyFeatures] = useState([]);
   const [cities, setCities] = useState([]);
   const [cityMarker, setCityMarker] = useState(null);
   const [infoModalType, setInfoModalType] = useState(null);
@@ -62,7 +63,7 @@ const MapChart = () => {
     });
   }, []);
 
-  // Load county centroids for zoom-to-county feature
+  // Load county centroids and features for zoom-to-county and city-to-county lookup
   useEffect(() => {
     json(MAP_CONFIG.geoUrl).then((topology) => {
       const counties = feature(topology, topology.objects.counties);
@@ -74,6 +75,7 @@ const MapChart = () => {
         }
       });
       setCountyCentroids(centroids);
+      setCountyFeatures(counties.features);
     });
   }, []);
 
@@ -238,12 +240,22 @@ const MapChart = () => {
   }, [countyCentroids]);
 
   const handleCitySelect = useCallback((city) => {
-    // Zoom to the city coordinates without selecting a county
+    // Zoom to the city coordinates
     setCenter([city.lng, city.lat]);
     setZoom(MAP_CONFIG.selectionZoom);
     // Show marker at city location
     setCityMarker({ lat: city.lat, lng: city.lng, name: city.name });
-  }, []);
+
+    // Find and select the county containing this city
+    const cityPoint = [city.lng, city.lat];
+    const containingFeature = countyFeatures.find(f => geoContains(f, cityPoint));
+    if (containingFeature) {
+      const countyData = dataMap.get(containingFeature.id);
+      if (countyData) {
+        setSelectedCounty(countyData);
+      }
+    }
+  }, [countyFeatures, dataMap]);
 
   const clearComparison = useCallback(() => {
     setComparisonCounties([]);
