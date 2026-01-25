@@ -527,7 +527,7 @@ const MapChart = () => {
                         style={{ backgroundColor: county.isPrimary ? CHART_COLORS[0].stroke : CHART_COLORS[(i % (CHART_COLORS.length - 1)) + 1].stroke }}
                       />
                       <span className="legend-name">
-                        {county.name.replace(" County", "").replace(" Parish", "")}
+                        {county.name}
                       </span>
                       <span className="legend-risk">({county.total_risk})</span>
                     </div>

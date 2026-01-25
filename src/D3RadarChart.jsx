@@ -177,7 +177,7 @@ const D3RadarChart = ({ counties }) => {
         .on("mouseenter", function (event, d) {
           // Show all county values for this factor
           const tooltipData = counties.map((county, ci) => ({
-            name: county.name.replace(" County", "").replace(" Parish", ""),
+            name: county.name,
             value: county[d.key],
             color: county.isPrimary ? CHART_COLORS[0].stroke : CHART_COLORS[(ci % (CHART_COLORS.length - 1)) + 1].stroke,
           }));
