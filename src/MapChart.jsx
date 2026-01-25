@@ -21,9 +21,12 @@ import Statistics from "./Statistics";
 import Tooltip from "./Tooltip";
 import Search from "./Search";
 import InfoModal from "./InfoModal";
+import MobileLayout from "./MobileLayout";
+import { useIsMobile } from "./hooks/useIsMobile";
 import { CHART_COLORS, MAP_CONFIG, MAP_COLORS, RISK_TYPES } from "./constants";
 
 const MapChart = () => {
+  const isMobile = useIsMobile(480);
   const [data, setData] = useState([]);
   const [selectedCounty, setSelectedCounty] = useState(null);
   const [selectedRiskType, setSelectedRiskType] = useState(RISK_TYPES[0]);
@@ -288,6 +291,45 @@ const MapChart = () => {
     });
     return counties;
   }, [selectedCounty, comparisonCounties]);
+
+  // Render mobile layout
+  if (isMobile) {
+    return (
+      <MobileLayout
+        data={data}
+        dataMap={dataMap}
+        cities={cities}
+        colorScale={colorScale}
+        histogramBins={histogramBins}
+        selectedCounty={selectedCounty}
+        selectedRiskType={selectedRiskType}
+        selectedRanges={selectedRanges}
+        comparisonCounties={comparisonCounties}
+        radarCounties={radarCounties}
+        zoom={zoom}
+        center={center}
+        cityMarker={cityMarker}
+        setCityMarker={setCityMarker}
+        handleRiskTypeChange={handleRiskTypeChange}
+        handleRangeSelect={handleRangeSelect}
+        handleBinClick={handleBinClick}
+        handleCountyClick={handleCountyClick}
+        handleSearchSelect={handleSearchSelect}
+        handleCitySelect={handleCitySelect}
+        handleZoomIn={handleZoomIn}
+        handleZoomOut={handleZoomOut}
+        handleReset={handleReset}
+        handleMoveEnd={handleMoveEnd}
+        getCountyOpacity={getCountyOpacity}
+        getCountyStroke={getCountyStroke}
+        clearComparison={clearComparison}
+        removeFromComparison={removeFromComparison}
+        setSelectedRanges={setSelectedRanges}
+        infoModalType={infoModalType}
+        setInfoModalType={setInfoModalType}
+      />
+    );
+  }
 
   return (
     <div className="app-layout">

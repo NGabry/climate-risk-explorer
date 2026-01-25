@@ -952,20 +952,33 @@ svg {
 
 .search-clear {
   position: absolute;
-  right: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  right: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 8px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 50%;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-clear svg {
+  width: 10px;
+  height: 10px;
+  stroke: var(--text-secondary);
 }
 
 .search-clear:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.search-clear:hover svg {
+  stroke: var(--text-primary);
 }
 
 .search-results {
@@ -1235,5 +1248,618 @@ svg {
   .radar-section,
   .chart-panel {
     border-radius: 20px;
+  }
+}
+
+/* =====================================================
+   MOBILE LAYOUT STYLES
+   ===================================================== */
+
+.mobile-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  overflow: hidden;
+  background: var(--bg-app);
+}
+
+/* Mobile Header */
+.mobile-header {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  z-index: 100;
+}
+
+.mobile-title {
+  text-align: center;
+}
+
+.mobile-title h1 {
+  margin: 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.mobile-subtitle {
+  font-size: 0.7em;
+  color: var(--text-muted);
+}
+
+/* Mobile Search Wrapper - contains dropdown */
+.mobile-search-wrapper {
+  position: relative;
+  z-index: 200;
+}
+
+.mobile-search-wrapper .search-container {
+  max-width: 100%;
+}
+
+.mobile-search-wrapper .search-input {
+  width: 100%;
+}
+
+.mobile-search-wrapper .search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  max-height: 60vh;
+  background: rgba(30, 40, 50, 0.97);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+}
+
+/* Mobile View Tabs (Map/Stats/Compare) - in header */
+.mobile-view-tabs {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.mobile-view-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.mobile-view-tab svg {
+  flex-shrink: 0;
+}
+
+.mobile-view-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+.mobile-view-tab:hover svg {
+  stroke: var(--text-secondary);
+}
+
+.mobile-view-tab.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+  box-shadow: 0 2px 12px rgba(0, 212, 255, 0.3);
+}
+
+.mobile-view-tab.active svg {
+  stroke: white;
+}
+
+.mobile-view-tab-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--accent-danger);
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+/* Mobile Bottom Tab Bar - Risk Categories */
+.mobile-tab-bar {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.mobile-risk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+  justify-content: center;
+}
+
+.mobile-risk-tab {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-risk-tab:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+
+.mobile-risk-tab.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.35);
+}
+
+.mobile-risk-tab.info-btn {
+  padding: 6px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-risk-tab.info-btn:hover {
+  background: transparent;
+}
+
+.mobile-risk-tab.info-btn svg {
+  fill: var(--text-muted);
+  opacity: 0.7;
+}
+
+.mobile-risk-tab.info-btn:hover svg {
+  fill: var(--text-primary);
+  opacity: 1;
+}
+
+/* Mobile Footer with Social Links */
+.mobile-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 16px 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 10px;
+  color: var(--text-subtle);
+}
+
+.mobile-footer-text {
+  color: var(--text-subtle);
+}
+
+.mobile-footer-text a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.mobile-footer .social-link {
+  color: var(--text-subtle);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.mobile-footer .social-link svg {
+  width: 12px;
+  height: 12px;
+}
+
+.mobile-footer .social-divider {
+  color: var(--text-subtle);
+  font-size: 0.8em;
+  opacity: 0.5;
+}
+
+/* Mobile Content Area */
+.mobile-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  z-index: 1;
+}
+
+/* Mobile Map View */
+.mobile-map-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mobile-risk-tabs {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 40px;
+  background: rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.mobile-risk-tabs .risk-tab {
+  padding: 6px 10px;
+  font-size: 10px;
+}
+
+.mobile-risk-tabs .info-icon-btn {
+  position: absolute;
+  right: 12px;
+}
+
+.mobile-risk-tabs .info-icon-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Mobile Map Container */
+.mobile-map-container {
+  flex: 1;
+  position: relative;
+  min-height: 250px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mobile-map-container .map-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Mobile Zoom Controls */
+.mobile-zoom-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mobile-zoom-controls button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(30, 40, 50, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--text-primary);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-zoom-controls button:active {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(0.95);
+}
+
+/* Mobile Legend */
+.mobile-legend {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mobile-legend .clear-filter-btn {
+  margin-top: 4px;
+}
+
+/* Mobile Selected County Info */
+.mobile-selected-info {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-selected-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mobile-selected-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mobile-selected-score {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-selected-hint {
+  margin: 6px 0 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Mobile Stats View */
+.mobile-stats-view {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Mobile Panel (generic glass panel for mobile) */
+.mobile-panel {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Mobile Compare View */
+.mobile-compare-view {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.mobile-radar-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+}
+
+.mobile-radar-panel .radar-header {
+  margin-bottom: 6px;
+}
+
+.mobile-radar-panel .radar-header h3 {
+  font-size: 0.85em;
+  margin: 0;
+}
+
+/* Constrain the radar chart container on mobile */
+.mobile-radar-panel > div[style] {
+  flex: none !important;
+  height: 280px !important;
+  min-height: 280px !important;
+  max-height: 280px !important;
+}
+
+.mobile-radar-panel .radar-legend {
+  margin-top: 8px;
+  gap: 4px;
+}
+
+.mobile-radar-panel .radar-legend-item {
+  font-size: 0.7em;
+  gap: 6px;
+}
+
+.mobile-radar-panel .legend-color {
+  width: 8px;
+  height: 8px;
+}
+
+.mobile-radar-panel .hint {
+  margin-top: 6px;
+  font-size: 0.65em;
+}
+
+/* Compact empty state for mobile */
+.mobile-compare-view .mobile-empty-state {
+  padding: 30px 20px;
+}
+
+.mobile-compare-view .mobile-empty-state svg {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 12px;
+}
+
+.mobile-compare-view .mobile-empty-state h3 {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.mobile-compare-view .mobile-empty-state p {
+  font-size: 12px;
+}
+
+/* Mobile Empty State */
+.mobile-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+.mobile-empty-state svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.mobile-empty-state h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.mobile-empty-state p {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+}
+
+.mobile-empty-state .hint {
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
+/* Mobile Statistics Adjustments */
+.mobile-stats-view .mobile-panel {
+  padding: 12px;
+}
+
+.mobile-stats-view .statistics-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobile-stats-view .statistics-title {
+  font-size: 0.8em;
+  margin: 0 0 6px 0;
+}
+
+.mobile-stats-view .statistics-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.mobile-stats-view .stat-item {
+  padding: 8px;
+  gap: 2px;
+}
+
+.mobile-stats-view .stat-label {
+  font-size: 0.55em;
+}
+
+.mobile-stats-view .stat-value {
+  font-size: 0.95em;
+}
+
+.mobile-stats-view .selected-stats {
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.mobile-stats-view .selected-county-name {
+  font-size: 1em;
+  margin-bottom: 6px;
+}
+
+.mobile-stats-view .percentile-value {
+  font-size: 1.1em;
+}
+
+.mobile-stats-view .percentile-bar {
+  height: 6px;
+}
+
+.mobile-stats-view .selected-stats-score {
+  position: relative;
+  top: auto;
+  right: auto;
+  transform: none;
+  margin-top: 10px;
+  padding: 8px 14px;
+}
+
+.mobile-stats-view .score-value {
+  font-size: 1.8em;
+}
+
+.mobile-stats-view .score-label {
+  font-size: 0.6em;
+}
+
+/* Compact histogram for mobile */
+.mobile-stats-view .histogram-panel {
+  flex: 1;
+  min-height: 150px;
+  max-height: 200px;
+  overflow: hidden;
+}
+
+.mobile-stats-view .stats-panel {
+  flex-shrink: 0;
+}
+
+/* Mobile Info Modal Adjustments */
+@media (max-width: 480px) {
+  .info-modal {
+    width: 95%;
+    max-height: 90vh;
+    border-radius: 20px;
+  }
+
+  .info-modal-header {
+    padding: 16px;
+  }
+
+  .info-modal-content {
+    padding: 16px;
+  }
+
+  /* Hide app footer on mobile - mobile layout has its own */
+  .app-footer {
+    display: none;
   }
 }
