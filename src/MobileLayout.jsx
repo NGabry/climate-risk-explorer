@@ -372,7 +372,7 @@ const MobileLayout = ({
           </span>
           <span className="social-divider">|</span>
           <a
-            href="https://github.com/NGabry"
+            href="https://github.com/NGabry/climate-risk-explorer"
             target="_blank"
             rel="noopener noreferrer"
             className="social-link"

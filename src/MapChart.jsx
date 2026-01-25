@@ -469,7 +469,7 @@ const MapChart = () => {
           <div className="sidebar-section">
             <div className="social-links">
               <a
-                href="https://github.com/NGabry"
+                href="https://github.com/NGabry/climate-risk-explorer"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="social-link"
